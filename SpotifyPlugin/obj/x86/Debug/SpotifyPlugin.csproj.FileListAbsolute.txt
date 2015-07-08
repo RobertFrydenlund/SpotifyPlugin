@@ -1,0 +1,7 @@
+C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginr2\bin\Debug\SpotifyPlugin.dll.config
+C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginr2\bin\Debug\SpotifyPlugin.dll
+C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginr2\bin\Debug\SpotifyPlugin.pdb
+C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginr2\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginr2\obj\x86\Debug\SpotifyPlugin.csprojResolveAssemblyReference.cache
+C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginr2\obj\x86\Debug\SpotifyPlugin.dll
+C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginr2\obj\x86\Debug\SpotifyPlugin.pdb

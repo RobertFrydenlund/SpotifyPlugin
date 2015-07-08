@@ -1,0 +1,14 @@
+C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginDebugger\bin\Release\SpotifyPluginDebugger.exe.config
+C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginDebugger\bin\Release\SpotifyPluginDebugger.exe
+C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginDebugger\bin\Release\SpotifyPluginDebugger.pdb
+C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginDebugger\bin\Release\SpotifyPlugin.dll
+C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginDebugger\obj\x86\Release\SpotifyPluginDebugger.csprojResolveAssemblyReference.cache
+C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginDebugger\obj\x86\Release\SpotifyPluginDebugger.DebugForm.resources
+C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginDebugger\obj\x86\Release\SpotifyPluginDebugger.csproj.GenerateResource.Cache
+C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginDebugger\obj\x86\Release\SpotifyPluginDebugger.exe
+C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginDebugger\obj\x86\Release\SpotifyPluginDebugger.pdb
+C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginDebugger\bin\x86\Release\SpotifyPluginDebugger.exe.config
+C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginDebugger\bin\x86\Release\SpotifyPluginDebugger.exe
+C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginDebugger\bin\x86\Release\SpotifyPluginDebugger.pdb
+C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginDebugger\bin\x86\Release\SpotifyPlugin.dll
+C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginDebugger\bin\x86\Release\Newtonsoft.Json.dll
