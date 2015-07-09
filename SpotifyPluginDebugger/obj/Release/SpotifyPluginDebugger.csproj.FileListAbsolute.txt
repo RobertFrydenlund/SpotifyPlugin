@@ -1,5 +1,0 @@
-C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginDebugger\bin\Release\SpotifyPluginDebugger.exe.config
-C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginDebugger\obj\Release\SpotifyPluginDebugger.csprojResolveAssemblyReference.cache
-C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginDebugger\obj\Release\SpotifyPluginDebugger.DebugForm.resources
-C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginDebugger\obj\Release\SpotifyPluginDebugger.Properties.Resources.resources
-C:\Users\Raptor\Downloads\rainmeter-rainmeter-plugin-sdk-f503aee\rainmeter-rainmeter-plugin-sdk-f503aee\C#\SpotifyPluginDebugger\obj\Release\SpotifyPluginDebugger.csproj.GenerateResource.Cache
