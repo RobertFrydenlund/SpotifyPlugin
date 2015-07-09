@@ -9,6 +9,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpotifyPluginDebugger", "Sp
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpotifyPlugin", "SpotifyPlugin\SpotifyPlugin.csproj", "{1743630A-663E-4C0B-8142-DA51AB941550}"
+	ProjectSection(ProjectDependencies) = postProject
+		{49D56CA5-54AB-45C9-A245-EAE588FCBFE1} = {49D56CA5-54AB-45C9-A245-EAE588FCBFE1}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DllExporter", "DllExporter\DllExporter.csproj", "{49D56CA5-54AB-45C9-A245-EAE588FCBFE1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +46,16 @@ Global
 		{1743630A-663E-4C0B-8142-DA51AB941550}.Release|x64.Build.0 = Release|x64
 		{1743630A-663E-4C0B-8142-DA51AB941550}.Release|x86.ActiveCfg = Release|x86
 		{1743630A-663E-4C0B-8142-DA51AB941550}.Release|x86.Build.0 = Release|x86
+		{49D56CA5-54AB-45C9-A245-EAE588FCBFE1}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{49D56CA5-54AB-45C9-A245-EAE588FCBFE1}.Debug|x64.ActiveCfg = Release|x64
+		{49D56CA5-54AB-45C9-A245-EAE588FCBFE1}.Debug|x64.Build.0 = Release|x64
+		{49D56CA5-54AB-45C9-A245-EAE588FCBFE1}.Debug|x86.ActiveCfg = Release|x86
+		{49D56CA5-54AB-45C9-A245-EAE588FCBFE1}.Debug|x86.Build.0 = Release|x86
+		{49D56CA5-54AB-45C9-A245-EAE588FCBFE1}.Release|Any CPU.ActiveCfg = Release|x86
+		{49D56CA5-54AB-45C9-A245-EAE588FCBFE1}.Release|x64.ActiveCfg = Release|x64
+		{49D56CA5-54AB-45C9-A245-EAE588FCBFE1}.Release|x64.Build.0 = Release|x64
+		{49D56CA5-54AB-45C9-A245-EAE588FCBFE1}.Release|x86.ActiveCfg = Release|x86
+		{49D56CA5-54AB-45C9-A245-EAE588FCBFE1}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
