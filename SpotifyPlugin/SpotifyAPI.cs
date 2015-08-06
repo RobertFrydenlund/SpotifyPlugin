@@ -40,7 +40,7 @@ namespace SpotifyPlugin
             {
                 try
                 {
-                    System.Diagnostics.Process.Start(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Spotify\\Data\\SpotifyWebHelper.exe");
+                    System.Diagnostics.Process.Start(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Spotify\\SpotifyWebHelper.exe");
                 }
                 catch (Exception e)
                 {
