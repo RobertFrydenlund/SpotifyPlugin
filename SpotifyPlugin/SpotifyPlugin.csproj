@@ -87,6 +87,9 @@
     <Compile Include="Status.cs" />
     <Compile Include="SpotifyAPI.cs" />
     <Compile Include="StatusControl.cs" />
+    <Compile Include="TimeoutWebClient.cs">
+      <SubType>Component</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Newtonsoft.Json.dll" />

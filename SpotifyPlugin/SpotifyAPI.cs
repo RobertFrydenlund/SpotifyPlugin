@@ -15,7 +15,7 @@ namespace SpotifyPlugin
 
         string oauth;
         string csrf;
-        WebClient wc;
+        TimeoutWebClient wc;
 
         /// <summary>
         /// </summary>
@@ -32,13 +32,15 @@ namespace SpotifyPlugin
         private void Run()
         {
             // Web Client config
-            wc = new WebClient();
+            wc = new TimeoutWebClient();
+            wc.Timeout = 1000;
             wc.Headers.Add("Origin", "https://embed.spotify.com");
             wc.Headers[HttpRequestHeader.UserAgent] = String.Format("SpotifyPlugin {0}", System.Reflection.Assembly.GetCallingAssembly().GetName().Version.ToString());
 
-            SetupProcesses();
             try
             {
+                SetupProcesses();
+
                 CheckAuthentication();
 
                 Gather();
@@ -47,6 +49,10 @@ namespace SpotifyPlugin
             {
                 Out.Log("ERROR: " + e.Message, Verbosity.ERROR);
             }
+            finally
+            {
+                active = false;
+            }
         }
 
 
@@ -54,16 +60,17 @@ namespace SpotifyPlugin
         {
             // Dont know if i need this, but just in case
             Process[] procs = Process.GetProcessesByName("Spotify");
-
             if (procs.Length < 1)
             {
-                active = false;
                 Out.Log("Spotify is not running", Verbosity.WARNING);
+
                 // Shut down web helper as well
-                if (Process.GetProcessesByName("SpotifyWebHelper").Length > 0)
+                Process[] helperProc = Process.GetProcessesByName("SpotifyWebHelper");
+                if (helperProc.Length > 0)
                 {
-                    Process.GetProcessesByName("SpotifyWebHelper")[0].Kill();
+                    helperProc[0].Kill();
                 }
+                active = false;
                 return;
             }
             else
