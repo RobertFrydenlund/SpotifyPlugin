@@ -171,9 +171,6 @@ namespace SpotifyPlugin
             Current_Status = StatusControl.Current_Status;
             switch (Type)
             {
-                case MeasureType.Tags:
-                    
-                    return StatusControl.GetTags();
 
                 case MeasureType.Progress:
                     //return ((Current_Status.playing_position / Current_Status.track.length) * 100).ToString();//"##0"
@@ -260,7 +257,12 @@ namespace SpotifyPlugin
         {
             uint id = (uint)((void*)*data);
             Measures.Add(id, new Measure());
+
+            File.Delete((Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\Rainmeter\\SpotifyPlugin\\log.txt"));
+        
         }
+
+       
 
         [DllExport]
         public unsafe static void Finalize(void* data)
@@ -268,6 +270,7 @@ namespace SpotifyPlugin
             uint id = (uint)data;
             Measures.Remove(id);
         }
+
 
         [DllExport]
         public unsafe static void Reload(void* data, void* rm, double* maxValue)

@@ -29,7 +29,7 @@ namespace SpotifyPlugin
                 lastCallTime = DateTime.Now;
                 if (sAPI == null || sAPI.active == false)
                 {
-                    sAPI = new SpotifyAPI(200);
+                    sAPI = new SpotifyAPI(200, status.token);
                 }
                 return status;
             }
@@ -37,11 +37,6 @@ namespace SpotifyPlugin
             {
                 status = value;
             }
-        }
-
-        public static string GetTags()
-        {
-            return "";
         }
 
         public static string getArt(int resolution = 300)
@@ -104,7 +99,7 @@ namespace SpotifyPlugin
                 {
                     // Request gets ignored if not called from a proper browser
                     // webpage.Headers[HttpRequestHeader.UserAgent] = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.121 Safari/535.2";
-                    webpage.Headers[HttpRequestHeader.UserAgent] = "SpotifyPlugin";
+                    webpage.Headers[HttpRequestHeader.UserAgent] = String.Format("SpotifyPlugin {0}", System.Reflection.Assembly.GetCallingAssembly().GetName().Version.ToString());
 
                     Out.Log("Downloading embed page: " + status.track.album_resource.uri, Verbosity.DEBUG);
                     rawData = webpage.DownloadString("https://embed.spotify.com/oembed/?url=" + status.track.album_resource.uri);

@@ -41,6 +41,8 @@ namespace SpotifyPlugin
         public string rawData { get; set; }
         public Status()
         {
+            token = "t";
+            error = "";
             rawData = "";
             version = 0;
             client_version = "";
@@ -58,6 +60,8 @@ namespace SpotifyPlugin
             running = false;
         }
 
+        public string token { get; set;}
+        public string error { get; set; }
         public Track track { get; set; }
 
         public int version { get; set; }

@@ -16,7 +16,6 @@ namespace SpotifyPlugin
         private static string lastPrint = "";
         private static Stopwatch sw;
 
-        [Conditional("DEBUG")]
         public static void Log(Object data, Verbosity verbosity)
         {
             if ((int)verbosity >= (int)CurrentVerbosity)
@@ -27,7 +26,7 @@ namespace SpotifyPlugin
                     lastPrint = data.ToString();
                     lock (locker)
                     {
-                        using (StreamWriter w = File.AppendText(Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\log.txt"))
+                        using (StreamWriter w = File.AppendText(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\Rainmeter\\SpotifyPlugin\\log.txt"))
                         {
                             Write(data.ToString(), w);
                         }
@@ -38,8 +37,8 @@ namespace SpotifyPlugin
 
         public static void Write(string logMessage, TextWriter w)
         {
-            w.WriteLine("{0} {1}", DateTime.Now.ToLongTimeString(),
-                DateTime.Now.ToLongDateString());
+            w.WriteLine("{0} {1} {2}", DateTime.Now.ToLongTimeString(),
+                DateTime.Now.ToLongDateString(), System.Reflection.Assembly.GetCallingAssembly().GetName().Version.ToString());
             w.WriteLine("{0}", logMessage);
             w.WriteLine("-------------------------------");
         }

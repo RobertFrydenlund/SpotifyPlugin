@@ -82,7 +82,7 @@ namespace DllExporter
                 Console.WriteLine(ildasmProc.StandardOutput.ReadToEnd());
                 return ildasmProc.ExitCode;
             }
-
+            
             bool hasResource = File.Exists(targetResName);
 
             // Read disassembly and find methods marked with DllExport attribute

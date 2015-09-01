@@ -58,9 +58,9 @@ namespace SpotifyPluginDebugger
         }
 
         int i = 0;
+
         public void GetData(object sender, EventArgs e, Measure[] measures)
         {
-            
             //Thread.Sleep(10);
             string toShow;
             toShow = "\n" + "Track: " + measures[0].GetString();
@@ -72,10 +72,13 @@ namespace SpotifyPluginDebugger
             toShow += "\n";
             //toShow += "\n" + String.Format("Subscribers ({0}): {1}", measures.Length, sAPI.subscribers);
             toShow += "\n" + StatusControl.getData();
-            toShow += "\n" + StatusControl.Current_Status.rawData;
             toShow += "\n" + measures[5].GetString();
+
+           
             labDebug.Text = toShow;
 
+
+            
             if (i > 5)
             {
                 picDebug.ImageLocation = measures[5].GetString();
