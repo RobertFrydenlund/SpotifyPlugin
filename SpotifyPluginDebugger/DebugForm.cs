@@ -24,15 +24,21 @@ namespace SpotifyPluginDebugger
         public Measure progressMeasure;
         public Measure artMeasure;
 
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool AllocConsole();
+
         public DebugForm()
         {
 #if DEBUG
             InitializeComponent();
-
+            //AllocConsole();
+            Console.WriteLine("Console loaded");
             //InfoGatherer sAPI = new InfoGatherer(InfoGatherer.GetOAuth());
             //StatusControl.Restart();
             Thread.Sleep(200);
             Measure trackNameMeasure = new Measure();
+            Thread.Sleep(200);
             Measure albumNameMeasure = new Measure();
             Measure artistNameMeasure = new Measure();
             Measure lengthMeasure = new Measure();

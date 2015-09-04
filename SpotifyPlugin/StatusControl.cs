@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace SpotifyPlugin
 {
-    public class StatusControl
+    public static class StatusControl
     {
         #region settings
         private static String pathCover = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "/Rainmeter/SpotifyPlugin/cover.jpg";
@@ -75,6 +75,7 @@ namespace SpotifyPlugin
             HttpWebRequest httpWebRequest = (HttpWebRequest)HttpWebRequest.Create(url);
             using (HttpWebResponse httpWebReponse = (HttpWebResponse)httpWebRequest.GetResponse())
             {
+
                 // Read as stream
                 using (Stream stream = httpWebReponse.GetResponseStream())
                 {
@@ -104,7 +105,7 @@ namespace SpotifyPlugin
                     Out.Log("Downloading embed page: " + status.track.album_resource.uri, Verbosity.DEBUG);
                     rawData = webpage.DownloadString("https://embed.spotify.com/oembed/?url=" + status.track.album_resource.uri);
                 }
-                
+
                 JObject jo = JObject.Parse(rawData);
                 // Retrieve cover url
                 string imgUrl = jo.GetValue("thumbnail_url").ToString();
@@ -117,9 +118,9 @@ namespace SpotifyPlugin
                 GetImageFromUrl(imgUrl);
 
             }
-            catch (Exception e) 
+            catch (Exception e)
             {
-                // Probably wrong uri
+                Out.ChrashDump(e);
             }
         }
 

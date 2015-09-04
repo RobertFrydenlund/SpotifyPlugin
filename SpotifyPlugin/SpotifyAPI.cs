@@ -9,8 +9,10 @@ namespace SpotifyPlugin
 {
     class SpotifyAPI
     {
-        int updateRate;
-        public bool active = true;
+        private int updateRate;
+
+        private bool _active = true;
+        public bool active { get { return _active; } }
         public string rawData;
 
         string oauth;
@@ -22,6 +24,7 @@ namespace SpotifyPlugin
         /// <param name="updateRate"> ms between each update</param>
         public SpotifyAPI(int updateRate, string token)
         {
+            Out.Log("SpotifyAPI constructor", Verbosity.WARNING);
             this.updateRate = updateRate;
             this.oauth = token;
             // Start mining thread...
@@ -31,27 +34,30 @@ namespace SpotifyPlugin
 
         private void Run()
         {
-            // Web Client config
-            wc = new TimeoutWebClient();
-            wc.Timeout = 1000;
-            wc.Headers.Add("Origin", "https://embed.spotify.com");
-            wc.Headers[HttpRequestHeader.UserAgent] = String.Format("SpotifyPlugin {0}", System.Reflection.Assembly.GetCallingAssembly().GetName().Version.ToString());
-
             try
             {
+                // Check Processes first
                 SetupProcesses();
 
+                // Web Client config
+                wc = new TimeoutWebClient();
+                wc.Timeout = 1000;
+                wc.Headers.Add("Origin", "https://embed.spotify.com");
+                wc.Headers[HttpRequestHeader.UserAgent] = String.Format("SpotifyPlugin {0}", System.Reflection.Assembly.GetCallingAssembly().GetName().Version.ToString());
+
+                // Authenticate
                 CheckAuthentication();
 
+                // start gathering loop
                 Gather();
             }
             catch (Exception e)
             {
-                Out.Log("ERROR: " + e.Message, Verbosity.ERROR);
+                Out.ChrashDump(e);
             }
             finally
             {
-                active = false;
+                _active = false;
             }
         }
 
@@ -70,7 +76,7 @@ namespace SpotifyPlugin
                 {
                     helperProc[0].Kill();
                 }
-                active = false;
+                _active = false;
                 return;
             }
             else
@@ -80,14 +86,14 @@ namespace SpotifyPlugin
                     Out.Log("SpotifyWebHelper is not running", Verbosity.WARNING);
                     try
                     {
-                        System.Diagnostics.Process.Start(procs[0].MainModule.FileName.Replace("Spotify.exe", "SpotifyWebHelper.exe"));
+                        System.Diagnostics.Process.Start(procs[0].MainModule.FileName.ToLower().Replace("spotify.exe", "Data\\SpotifyWebHelper.exe"));
                     }
                     catch (Exception e)
                     {
                         Out.Log("WebHelper not found in default path, checking old version", Verbosity.DEBUG);
                         try
                         {
-                            System.Diagnostics.Process.Start(procs[0].MainModule.FileName.Replace("Spotify.exe", "Data\\SpotifyWebHelper.exe"));
+                            System.Diagnostics.Process.Start(procs[0].MainModule.FileName.ToLower().Replace("spotify.exe", "SpotifyWebHelper.exe"));
                         }
                         catch
                         {
@@ -155,7 +161,7 @@ namespace SpotifyPlugin
             }
             finally
             {
-                active = false;
+                _active = false;
             }
         }
     }

@@ -9,11 +9,13 @@ namespace SpotifyPlugin
 {
     public class Measure
     {
+        bool DEBUG = false;
         Status Current_Status;
         int numDecimals = 0;
 
         enum MeasureType
         {
+            DEBUG,
             Running,
             Playing,
             Shuffle,
@@ -63,6 +65,14 @@ namespace SpotifyPlugin
 #endif
             switch (type.ToLowerInvariant())
             {
+                case "debug":
+#if DEBUG
+                    EnableDebugMode(1);
+#else
+                    EnableDebugMode(rm.ReadInt("Verbosity", 1));
+#endif
+                    Type = MeasureType.DEBUG;
+                    break;
                 case "tags":
                     Type = MeasureType.Tags;
                     break;
@@ -139,6 +149,8 @@ namespace SpotifyPlugin
             Current_Status = StatusControl.Current_Status;
             switch (Type)
             {
+                case MeasureType.DEBUG:
+                    return 0;
                 case MeasureType.Repeat:
                     return Current_Status.repeat ? 1 : 0;
 
@@ -164,6 +176,22 @@ namespace SpotifyPlugin
 
             return 0.0;
         }
+
+        private void EnableDebugMode(int i)
+        {
+            if (DEBUG == true) return;
+
+            DEBUG = true;
+            AllocConsole();
+            Out.CurrentVerbosity = (Verbosity)i;
+            Console.WriteLine("Console window activated!");
+        }
+
+        // CONSOLE
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool AllocConsole();
+
 
         public string GetString()
         {
@@ -234,7 +262,7 @@ namespace SpotifyPlugin
 
         internal void ExecuteBang(string p)
         {
-            throw new NotImplementedException(p);
+            //throw new NotImplementedException(p);
         }
     }
 
@@ -257,11 +285,7 @@ namespace SpotifyPlugin
         {
             uint id = (uint)((void*)*data);
             Measures.Add(id, new Measure());
-
-            File.Delete((Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\Rainmeter\\SpotifyPlugin\\log.txt"));
-        
         }
-
        
 
         [DllExport]
