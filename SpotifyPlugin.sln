@@ -1,19 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpotifyPluginDebugger", "SpotifyPluginDebugger\SpotifyPluginDebugger.csproj", "{A5516C56-8E12-4113-9A63-AD7FF3024AB1}"
-	ProjectSection(ProjectDependencies) = postProject
-		{1743630A-663E-4C0B-8142-DA51AB941550} = {1743630A-663E-4C0B-8142-DA51AB941550}
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpotifyPlugin", "SpotifyPlugin\SpotifyPlugin.csproj", "{1743630A-663E-4C0B-8142-DA51AB941550}"
-	ProjectSection(ProjectDependencies) = postProject
-		{49D56CA5-54AB-45C9-A245-EAE588FCBFE1} = {49D56CA5-54AB-45C9-A245-EAE588FCBFE1}
-	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DllExporter", "DllExporter\DllExporter.csproj", "{49D56CA5-54AB-45C9-A245-EAE588FCBFE1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,17 +15,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A5516C56-8E12-4113-9A63-AD7FF3024AB1}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{A5516C56-8E12-4113-9A63-AD7FF3024AB1}.Debug|x64.ActiveCfg = Debug|x64
-		{A5516C56-8E12-4113-9A63-AD7FF3024AB1}.Debug|x64.Build.0 = Debug|x64
-		{A5516C56-8E12-4113-9A63-AD7FF3024AB1}.Debug|x86.ActiveCfg = Debug|x86
-		{A5516C56-8E12-4113-9A63-AD7FF3024AB1}.Debug|x86.Build.0 = Debug|x86
-		{A5516C56-8E12-4113-9A63-AD7FF3024AB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A5516C56-8E12-4113-9A63-AD7FF3024AB1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A5516C56-8E12-4113-9A63-AD7FF3024AB1}.Release|x64.ActiveCfg = Release|x64
-		{A5516C56-8E12-4113-9A63-AD7FF3024AB1}.Release|x64.Build.0 = Release|x64
-		{A5516C56-8E12-4113-9A63-AD7FF3024AB1}.Release|x86.ActiveCfg = Release|x86
-		{A5516C56-8E12-4113-9A63-AD7FF3024AB1}.Release|x86.Build.0 = Release|x86
 		{1743630A-663E-4C0B-8142-DA51AB941550}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{1743630A-663E-4C0B-8142-DA51AB941550}.Debug|x64.ActiveCfg = Debug|x64
 		{1743630A-663E-4C0B-8142-DA51AB941550}.Debug|x64.Build.0 = Debug|x64
@@ -46,16 +25,6 @@ Global
 		{1743630A-663E-4C0B-8142-DA51AB941550}.Release|x64.Build.0 = Release|x64
 		{1743630A-663E-4C0B-8142-DA51AB941550}.Release|x86.ActiveCfg = Release|x86
 		{1743630A-663E-4C0B-8142-DA51AB941550}.Release|x86.Build.0 = Release|x86
-		{49D56CA5-54AB-45C9-A245-EAE588FCBFE1}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{49D56CA5-54AB-45C9-A245-EAE588FCBFE1}.Debug|x64.ActiveCfg = Release|x64
-		{49D56CA5-54AB-45C9-A245-EAE588FCBFE1}.Debug|x64.Build.0 = Release|x64
-		{49D56CA5-54AB-45C9-A245-EAE588FCBFE1}.Debug|x86.ActiveCfg = Release|x86
-		{49D56CA5-54AB-45C9-A245-EAE588FCBFE1}.Debug|x86.Build.0 = Release|x86
-		{49D56CA5-54AB-45C9-A245-EAE588FCBFE1}.Release|Any CPU.ActiveCfg = Release|x86
-		{49D56CA5-54AB-45C9-A245-EAE588FCBFE1}.Release|x64.ActiveCfg = Release|x64
-		{49D56CA5-54AB-45C9-A245-EAE588FCBFE1}.Release|x64.Build.0 = Release|x64
-		{49D56CA5-54AB-45C9-A245-EAE588FCBFE1}.Release|x86.ActiveCfg = Release|x86
-		{49D56CA5-54AB-45C9-A245-EAE588FCBFE1}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
