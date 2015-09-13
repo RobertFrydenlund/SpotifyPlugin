@@ -7,7 +7,7 @@ using System.Text;
 
 namespace SpotifyPlugin
 {
-    public class Measure
+    internal class Measure
     {
         bool DEBUG = false;
         Status Current_Status;
@@ -44,19 +44,18 @@ namespace SpotifyPlugin
             Tags
         }
 
-        MeasureType Type = MeasureType.Running;
+        private MeasureType Type = MeasureType.Running;
 
-        public Measure()
+        internal Measure()
         {
 
         }
 #if DEBUG
         public void Reload(string resolution, string type, ref double maxValue)
 #else
-        public void Reload(Rainmeter.API rm, ref double maxValue)
+        internal void Reload(Rainmeter.API rm, ref double maxValue)
 #endif
         {
-
             bool art = false;
 #if DEBUG
 #else
@@ -142,7 +141,7 @@ namespace SpotifyPlugin
             }
         }
 
-        public double Update()
+        internal double Update()
         {
             //API.Log(API.LogType.Error, StatusControl.Current_Status.rawData);
             // Update status
@@ -170,10 +169,6 @@ namespace SpotifyPlugin
                     return Current_Status.playing_position / (Current_Status.track.length * 1.00);
 
             }
-
-            // MeasureType.MajorMinor is not a number and and therefore will be
-            // returned in GetString.
-
             return 0.0;
         }
 
@@ -193,7 +188,7 @@ namespace SpotifyPlugin
         static extern bool AllocConsole();
 
 
-        public string GetString()
+        internal string GetString()
         {
             // Update status
             Current_Status = StatusControl.Current_Status;
@@ -268,58 +263,58 @@ namespace SpotifyPlugin
 
     public static class Plugin
     {
-        internal static Dictionary<uint, Measure> Measures = new Dictionary<uint, Measure>();
-
-
-        [DllExport]
-        public unsafe static void ExecuteBang(void* data, char* args)
-        {
-            uint id = (uint)data;
-            Measures[id].ExecuteBang(new string(args));
-        }
-
-
+        static IntPtr StringBuffer = IntPtr.Zero;
 
         [DllExport]
-        public unsafe static void Initialize(void** data, void* rm)
+        public static void Initialize(ref IntPtr data, IntPtr rm)
         {
-            uint id = (uint)((void*)*data);
-            Measures.Add(id, new Measure());
-        }
-       
-
-        [DllExport]
-        public unsafe static void Finalize(void* data)
-        {
-            uint id = (uint)data;
-            Measures.Remove(id);
-        }
-
-
-        [DllExport]
-        public unsafe static void Reload(void* data, void* rm, double* maxValue)
-        {
-            uint id = (uint)data;
-#if DEBUG
-#else
-            Measures[id].Reload(new Rainmeter.API((IntPtr)rm), ref *maxValue);
-#endif
+            data = GCHandle.ToIntPtr(GCHandle.Alloc(new Measure()));
         }
 
         [DllExport]
-        public unsafe static double Update(void* data)
+        public static void Finalize(IntPtr data)
         {
+            GCHandle.FromIntPtr(data).Free();
 
-            uint id = (uint)data;
-            return Measures[id].Update();
-
+            if (StringBuffer != IntPtr.Zero)
+            {
+                Marshal.FreeHGlobal(StringBuffer);
+                StringBuffer = IntPtr.Zero;
+            }
         }
 
         [DllExport]
-        public unsafe static char* GetString(void* data)
+        public static void Reload(IntPtr data, IntPtr rm, ref double maxValue)
         {
-            uint id = (uint)data;
-            fixed (char* s = Measures[id].GetString()) return s;
+            Measure measure = (Measure)GCHandle.FromIntPtr(data).Target;
+            measure.Reload(new Rainmeter.API(rm), ref maxValue);
         }
+
+        [DllExport]
+        public static double Update(IntPtr data)
+        {
+            Measure measure = (Measure)GCHandle.FromIntPtr(data).Target;
+            return measure.Update();
+        }
+
+        [DllExport]
+        public static IntPtr GetString(IntPtr data)
+        {
+            Measure measure = (Measure)GCHandle.FromIntPtr(data).Target;
+            if (StringBuffer != IntPtr.Zero)
+            {
+                Marshal.FreeHGlobal(StringBuffer);
+                StringBuffer = IntPtr.Zero;
+            }
+
+            string stringValue = measure.GetString();
+            if (stringValue != null)
+            {
+                StringBuffer = Marshal.StringToHGlobalUni(stringValue);
+            }
+
+            return StringBuffer;
+        }
+
     }
 }
