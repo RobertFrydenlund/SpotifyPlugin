@@ -48,26 +48,16 @@ namespace SpotifyPlugin
         {
 
         }
-#if DEBUG
-        public void Reload(string resolution, string type, ref double maxValue)
-#else
+
         internal void Reload(Rainmeter.API rm, ref double maxValue)
-#endif
         {
             bool art = false;
-#if DEBUG
-#else
             string type = rm.ReadString("Type", "");
             int.TryParse(rm.ReadString("Decimals", "0"), out numDecimals);
-#endif
             switch (type.ToLowerInvariant())
             {
                 case "debug":
-#if DEBUG
-                    EnableDebugMode(1);
-#else
                     EnableDebugMode(rm.ReadInt("Verbosity", 1));
-#endif
                     Type = MeasureType.DEBUG;
                     break;
                 case "tags":
@@ -114,10 +104,8 @@ namespace SpotifyPlugin
             }
             if (art)
             {
-#if DEBUG
-#else
                 string resolution = rm.ReadString("Res", "");
-#endif
+
                 switch (resolution.ToLowerInvariant())
                 {
                     case "60":

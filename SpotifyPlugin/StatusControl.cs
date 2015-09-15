@@ -88,7 +88,7 @@ namespace SpotifyPlugin
             }
             // Change back to cover image
             useCover = true;
-            Out.Log("Artwork updated", Verbosity.DEBUG);
+            Out.Log(Verbosity.DEBUG, "Artwork updated");
         }
 
         public static void GetAlbumImage(int resolution)
@@ -102,7 +102,7 @@ namespace SpotifyPlugin
                     // webpage.Headers[HttpRequestHeader.UserAgent] = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.121 Safari/535.2";
                     webpage.Headers[HttpRequestHeader.UserAgent] = String.Format("SpotifyPlugin {0}", System.Reflection.Assembly.GetCallingAssembly().GetName().Version.ToString());
 
-                    Out.Log("Downloading embed page: " + status.track.album_resource.uri, Verbosity.DEBUG);
+                    Out.Log(Verbosity.DEBUG, "Downloading embed page: {0}", status.track.album_resource.uri);
                     rawData = webpage.DownloadString("https://embed.spotify.com/oembed/?url=" + status.track.album_resource.uri);
                 }
 
@@ -113,7 +113,7 @@ namespace SpotifyPlugin
                 // Specify album resolution
                 imgUrl = imgUrl.Replace("cover", resolution.ToString());
 
-                Out.Log("Artwork found, downloading image...", Verbosity.DEBUG);
+                Out.Log(Verbosity.DEBUG, "Artwork found, downloading image...");
 
                 GetImageFromUrl(imgUrl);
 

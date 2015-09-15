@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace SpotifyPlugin
 {
-    class SpotifyAPI
+    public class SpotifyAPI
     {
         private int updateRate;
 
@@ -24,7 +24,7 @@ namespace SpotifyPlugin
         /// <param name="updateRate"> ms between each update</param>
         public SpotifyAPI(int updateRate, string token)
         {
-            Out.Log("SpotifyAPI constructor", Verbosity.WARNING);
+            Out.Log(Verbosity.DEBUG, "SpotifyAPI started...");
             this.updateRate = updateRate;
             this.oauth = token;
             // Start mining thread...
@@ -37,18 +37,22 @@ namespace SpotifyPlugin
             try
             {
                 // Check Processes first
-                SetupProcesses();
+                if (!SetupProcesses())
+                {
+                    return;
+                }
 
                 // Web Client config
                 wc = new TimeoutWebClient();
                 wc.Timeout = 1000;
+                // Must have these headers to avoid 404
                 wc.Headers.Add("Origin", "https://embed.spotify.com");
                 wc.Headers[HttpRequestHeader.UserAgent] = String.Format("SpotifyPlugin {0}", System.Reflection.Assembly.GetCallingAssembly().GetName().Version.ToString());
 
                 // Authenticate
                 CheckAuthentication();
 
-                // start gathering loop
+                // Start gathering loop
                 Gather();
             }
             catch (Exception e)
@@ -62,47 +66,49 @@ namespace SpotifyPlugin
         }
 
 
-        private void SetupProcesses()
+        private bool SetupProcesses()
         {
             // Dont know if i need this, but just in case
             Process[] procs = Process.GetProcessesByName("Spotify");
             if (procs.Length < 1)
             {
-                Out.Log("Spotify is not running", Verbosity.WARNING);
+                Out.Log(Verbosity.WARNING, "Spotify is not running");
 
-                // Shut down web helper as well
+                // Shut down web helpers as well
                 Process[] helperProc = Process.GetProcessesByName("SpotifyWebHelper");
-                if (helperProc.Length > 0)
+
+                for (int i = 0; i < helperProc.Length; i++)
                 {
-                    helperProc[0].Kill();
+                    // Kill all webhelpers
+                    helperProc[i].Kill();
                 }
-                _active = false;
-                return;
+                return false;
             }
             else
             {
                 if (Process.GetProcessesByName("SpotifyWebHelper").Length < 1)
                 {
-                    Out.Log("SpotifyWebHelper is not running", Verbosity.WARNING);
+                    Out.Log(Verbosity.WARNING, "SpotifyWebHelper is not running");
                     try
                     {
                         System.Diagnostics.Process.Start(procs[0].MainModule.FileName.ToLower().Replace("spotify.exe", "Data\\SpotifyWebHelper.exe"));
                     }
                     catch (Exception e)
                     {
-                        Out.Log("WebHelper not found in default path, checking old version", Verbosity.DEBUG);
+                        Out.Log( Verbosity.DEBUG, "WebHelper not found in default path, checking old version");
                         try
                         {
                             System.Diagnostics.Process.Start(procs[0].MainModule.FileName.ToLower().Replace("spotify.exe", "SpotifyWebHelper.exe"));
                         }
                         catch
                         {
-                            Out.Log("Can't find SpotifyWebHelper.exe", Verbosity.ERROR);
-                            return;
+                            Out.Log(Verbosity.ERROR,"Can't find SpotifyWebHelper.exe");
+                            return false;
                         }
                     }
                 }
             }
+            return true;
         }
 
         private void CheckAuthentication()
@@ -117,19 +123,19 @@ namespace SpotifyPlugin
             // TODO Should have a proper json convert here, in case there are songs named ""error""
             if (authCheck.Contains("\"error\""))
             {
-                Out.Log("Invalid Token", Verbosity.WARNING);
+                Out.Log(Verbosity.WARNING, "Invalid Token");
                 SetupAuthentication();
             }
         }
 
         private void SetupAuthentication()
         {
-            Out.Log("Fetching new token", Verbosity.DEBUG);
+            Out.Log(Verbosity.DEBUG, "Fetching new token");
             // OAUTH
             string roauth = wc.DownloadString("https://open.spotify.com/token");
             oauth = JObject.Parse(roauth).GetValue("t").ToString();
+            Out.Log(Verbosity.DEBUG, "Recieved token {0}", oauth);
 
-            // TODO might not be needed
             // CSRF
             string rcsrf = wc.DownloadString("http://localhost:4380/simplecsrf/token.json");
             csrf = JObject.Parse(rcsrf).GetValue("token").ToString();
@@ -152,12 +158,13 @@ namespace SpotifyPlugin
                     }
 
                     StatusControl.Current_Status = s;
+
                     Thread.Sleep(updateRate);
                 }
             }
             catch (Exception e)
             {
-                Out.Log(e.Message, Verbosity.WARNING);
+                Out.ChrashDump(e);
             }
             finally
             {

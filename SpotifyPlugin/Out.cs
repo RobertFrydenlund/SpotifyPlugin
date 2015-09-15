@@ -17,25 +17,19 @@ namespace SpotifyPlugin
         //private static string lastPrint = "";
         private static Stopwatch sw;
 
-        public static void Log(Object data, Verbosity verbosity)
+        public static void Log(Verbosity verbosity, string value)
         {
             if ((int)verbosity >= (int)CurrentVerbosity)
             {
-                Console.WriteLine(data.ToString());
+                Console.WriteLine("{0}: {1}", verbosity.ToString(), value);
+            }
+        }
 
-                /*
-                // Write data to file
-                if (data.ToString() != lastPrint)
-                {
-                    lastPrint = data.ToString();
-                    lock (locker)
-                    {
-                        using (StreamWriter w = File.AppendText(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\Rainmeter\\SpotifyPlugin\\log.txt"))
-                        {
-                            Write(data.ToString(), w);
-                        }
-                    }
-                }*/
+        public static void Log(Verbosity verbosity,string format, params object[] arg0)
+        {
+            if ((int)verbosity >= (int)CurrentVerbosity)
+            {
+                Console.WriteLine(String.Format("{0}: ", verbosity.ToString()) + format, arg0);
             }
         }
 
@@ -60,7 +54,6 @@ namespace SpotifyPlugin
             return sw.ElapsedMilliseconds;
         }
 
-        [Conditional("DEBUG")]
         public static void ChrashDump(Exception e)
         {
             string chrash = String.Format("\n--------");
