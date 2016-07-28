@@ -7,6 +7,9 @@ namespace SpotifyPlugin
 {
     internal class Measure
     {
+        public static string coverPath = "";
+        public static string defaultPath = "";
+
         bool DEBUG = false;
         Status Current_Status;
         int numDecimals = 0;
@@ -39,7 +42,8 @@ namespace SpotifyPlugin
             AlbumArt120,
             AlbumArt300,
             AlbumArt640,
-            Tags
+            Tags,
+            CoverPath
         }
 
         private MeasureType Type = MeasureType.Running;
@@ -57,7 +61,7 @@ namespace SpotifyPlugin
             switch (type.ToLowerInvariant())
             {
                 case "debug":
-                    EnableDebugMode(rm.ReadInt("Verbosity", 1));
+                    EnableDebugMode(rm.ReadInt("Verbosity", 0));
                     Type = MeasureType.DEBUG;
                     break;
                 case "tags":
@@ -94,8 +98,13 @@ namespace SpotifyPlugin
                     Type = MeasureType.AlbumName;
                     break;
                 case "albumart":
+                    coverPath = rm.ReadPath("CoverPath", "");
+                    defaultPath = rm.ReadPath("DefaultPath", "");
                     // 60, 85, 120, 300, and 640.
                     art = true;
+                    break;
+                case "coverpath":
+                    Type = MeasureType.CoverPath;
                     break;
                 default:
                     API.Log(API.LogType.Error, "SpotifyPlugin.dll: Type=" + type + " not valid");
@@ -185,22 +194,21 @@ namespace SpotifyPlugin
                     //return ((Current_Status.playing_position / Current_Status.track.length) * 100).ToString();//"##0"
                     return ((Current_Status.playing_position / Current_Status.track.length) * 100).ToString("N"+numDecimals);//"##0"
 
-
                 case MeasureType.Volume:
                     double volume = 100 * Current_Status.volume;
                     return volume.ToString("##0");
 
                 case MeasureType.Position:
-                    double sec = Current_Status.playing_position;
-                    double min = (int)Math.Floor(1.0 * sec / 60);
-                    sec -= min * 60;
-                    return min.ToString("#00") + ":" + sec.ToString("00");
+                    double playingPosition = Current_Status.playing_position;
+                    double sec = Math.Floor(playingPosition % 60);
+                    double min = Math.Floor(playingPosition / 60);
+                    return String.Format("{0}:{1}", min.ToString("#00"), sec.ToString("00"));
 
                 case MeasureType.Length:
-                    int sec2 = Current_Status.track.length;
-                    int min2 = (int)Math.Floor(1.0 * sec2 / 60);
-                    sec2 -= min2 * 60;
-                    return min2.ToString("#00") + ":" + sec2.ToString("00");
+                    double trackLength = Current_Status.track.length;
+                    double secl = Math.Floor(trackLength % 60);
+                    double minl = Math.Floor(trackLength / 60);
+                    return String.Format("{0}:{1}", minl.ToString("#00"), secl.ToString("00"));
 
                 case MeasureType.TrackName:
                     return toUTF8(Current_Status.track.track_resource.name);
@@ -209,19 +217,19 @@ namespace SpotifyPlugin
                     return toUTF8(Current_Status.track.artist_resource.name);
 
                 case MeasureType.AlbumArt60:
-                    return StatusControl.getArt(60);
+                    return StatusControl.getArt(60, defaultPath, coverPath);
 
                 case MeasureType.AlbumArt85:
-                    return StatusControl.getArt(85);
+                    return StatusControl.getArt(85, defaultPath, coverPath);
 
                 case MeasureType.AlbumArt120:
-                    return StatusControl.getArt(120);
+                    return StatusControl.getArt(120, defaultPath, coverPath);
 
                 case MeasureType.AlbumArt300:
-                    return StatusControl.getArt(300);
+                    return StatusControl.getArt(300, defaultPath, coverPath);
 
                 case MeasureType.AlbumArt640:
-                    return StatusControl.getArt(640);
+                    return StatusControl.getArt(640, defaultPath, coverPath);
 
                 case MeasureType.AlbumName:
                     return toUTF8(Current_Status.track.album_resource.name);

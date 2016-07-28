@@ -4,27 +4,29 @@ using System;
 using System.Diagnostics;
 using System.Net;
 using System.Threading;
+using Rm = Rainmeter.API;
 
 namespace SpotifyPlugin
 {
     public class SpotifyAPI
     {
         private int updateRate;
-
+        
         private bool _active = true;
         public bool active { get { return _active; } }
+
         public string rawData;
 
         string oauth;
         string csrf;
         TimeoutWebClient wc;
 
-        /// <summary>
-        /// </summary>
-        /// <param name="updateRate"> ms between each update</param>
+        private static Process[] procs;
+
         public SpotifyAPI(int updateRate, string token)
         {
-            Out.Log(Verbosity.DEBUG, "SpotifyAPI started...");
+            Rm.Log(Rm.LogType.Debug, "SpotifyAPI started...");
+            //Out.Log(Verbosity.DEBUG, "SpotifyAPI started...");
             this.updateRate = updateRate;
             this.oauth = token;
             // Start mining thread...
@@ -37,17 +39,17 @@ namespace SpotifyPlugin
             try
             {
                 // Check Processes first
-                if (!SetupProcesses())
-                {
+                if (!CheckProcesses())
                     return;
-                }
 
-                // Web Client config
+                #region Web Client config
                 wc = new TimeoutWebClient();
-                wc.Timeout = 1000;
-                // Must have these headers to avoid 404
+                wc.Timeout = StatusControl.timeout;
+                
+                // Must have these headers
                 wc.Headers.Add("Origin", "https://embed.spotify.com");
                 wc.Headers[HttpRequestHeader.UserAgent] = String.Format("SpotifyPlugin {0}", System.Reflection.Assembly.GetCallingAssembly().GetName().Version.ToString());
+                #endregion
 
                 // Authenticate
                 CheckAuthentication();
@@ -64,51 +66,73 @@ namespace SpotifyPlugin
                 _active = false;
             }
         }
-
-
-        private bool SetupProcesses()
+        /// <summary>
+        /// Checks if Spotify.exe and SpotifyWebHelper.exe is running. 
+        /// Makes sure there are webhelpers running.
+        /// </summary>
+        /// <returns>true if spotify is running</returns>
+        private bool CheckProcesses()
         {
-            // Dont know if i need this, but just in case
-            Process[] procs = Process.GetProcessesByName("Spotify");
+            procs = Process.GetProcessesByName("Spotify");
             if (procs.Length < 1)
             {
-                Out.Log(Verbosity.WARNING, "Spotify is not running");
-
-                // Shut down web helpers as well
-                Process[] helperProc = Process.GetProcessesByName("SpotifyWebHelper");
-
-                for (int i = 0; i < helperProc.Length; i++)
-                {
-                    // Kill all webhelpers
-                    helperProc[i].Kill();
-                }
+                Rm.Log(Rm.LogType.Warning, "Spotify is not running");
+                //Out.Log(Verbosity.WARNING, "Spotify is not running");
                 return false;
             }
             else
             {
+                // Spotify is running
+                procs[0].Exited += Spotify_Exited;
+
                 if (Process.GetProcessesByName("SpotifyWebHelper").Length < 1)
                 {
-                    Out.Log(Verbosity.WARNING, "SpotifyWebHelper is not running");
-                    try
-                    {
-                        System.Diagnostics.Process.Start(procs[0].MainModule.FileName.ToLower().Replace("spotify.exe", "Data\\SpotifyWebHelper.exe"));
-                    }
-                    catch (Exception e)
-                    {
-                        Out.Log( Verbosity.DEBUG, "WebHelper not found in default path, checking old version");
-                        try
-                        {
-                            System.Diagnostics.Process.Start(procs[0].MainModule.FileName.ToLower().Replace("spotify.exe", "SpotifyWebHelper.exe"));
-                        }
-                        catch
-                        {
-                            Out.Log(Verbosity.ERROR,"Can't find SpotifyWebHelper.exe");
-                            return false;
-                        }
-                    }
+                    Rm.Log(Rm.LogType.Warning, "SpotifyWebHelper is not running");
+                    //Out.Log(Verbosity.WARNING, "SpotifyWebHelper is not running");
+                    StartWebHelper();
                 }
             }
             return true;
+        }
+
+        /// <summary>
+        /// Starts the WebHelper for the currently running instance of spotify.
+        /// </summary>
+        private void StartWebHelper()
+        {
+            string spotifyPath = procs[0].MainModule.FileName.ToLower();
+            try
+            {
+                System.Diagnostics.Process.Start(spotifyPath.Replace("spotify.exe", "Data\\SpotifyWebHelper.exe"));
+            }
+            catch
+            {
+                Rm.Log(Rm.LogType.Debug, "WebHelper not found in default path, checking old version");
+                //Out.Log(Verbosity.DEBUG, "WebHelper not found in default path, checking old version");
+                try
+                {
+                    System.Diagnostics.Process.Start(spotifyPath.Replace("spotify.exe", "SpotifyWebHelper.exe"));
+                }
+                catch
+                {
+                    Rm.Log(Rm.LogType.Error, "Can't find SpotifyWebHelper.exe");
+                    //Out.Log(Verbosity.ERROR, "Can't find SpotifyWebHelper.exe");
+                    throw new System.IO.FileNotFoundException("Can't find SpotifyWebHelper.exe");
+                }
+            }
+        }
+
+        void Spotify_Exited(object sender, EventArgs e)
+        {
+            // Shut down web helpers as well
+            Process[] helperProcs = Process.GetProcessesByName("SpotifyWebHelper");
+            for (int i = 0; i < helperProcs.Length; i++)
+            {
+                // Kill all webhelpers
+                helperProcs[i].Kill();
+            }
+
+            _active = false;
         }
 
         private void CheckAuthentication()
@@ -123,18 +147,24 @@ namespace SpotifyPlugin
             // TODO Should have a proper json convert here, in case there are songs named ""error""
             if (authCheck.Contains("\"error\""))
             {
-                Out.Log(Verbosity.WARNING, "Invalid Token");
+                Rm.Log(Rm.LogType.Warning, "Invalid Token");
+                //Out.Log(Verbosity.WARNING, "Invalid Token");
                 SetupAuthentication();
             }
         }
 
         private void SetupAuthentication()
         {
-            Out.Log(Verbosity.DEBUG, "Fetching new token");
+            Rm.Log(Rm.LogType.Debug, "Fetching new token");
+            //Out.Log(Verbosity.DEBUG, "Fetching new token");
             // OAUTH
             string roauth = wc.DownloadString("https://open.spotify.com/token");
+
+            if (!_active) throw new ThreadStateException("API thread no longer active");
+
             oauth = JObject.Parse(roauth).GetValue("t").ToString();
-            Out.Log(Verbosity.DEBUG, "Recieved token {0}", oauth);
+            Rm.Log(Rm.LogType.Debug, String.Format("Recieved token {0}", oauth));
+            //Out.Log(Verbosity.DEBUG, "Recieved token {0}", oauth);
 
             // CSRF
             string rcsrf = wc.DownloadString("http://localhost:4380/simplecsrf/token.json");
@@ -152,6 +182,7 @@ namespace SpotifyPlugin
                     Status s = JsonConvert.DeserializeObject<Status>(rawData);
                     s.token = oauth;
 
+                    // TODO bad way to handle this
                     if (s.track.track_resource.name.Length < 1)
                     {
                         throw new JsonException("Missing data");

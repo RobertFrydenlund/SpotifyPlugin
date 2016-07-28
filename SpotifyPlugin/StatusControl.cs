@@ -8,10 +8,6 @@ namespace SpotifyPlugin
 {
     public static class StatusControl
     {
-        #region settings
-        private static String pathCover = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "/Rainmeter/SpotifyPlugin/cover.jpg";
-        private static String pathDefault = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "/Rainmeter/SpotifyPlugin/default.jpg";
-        #endregion
 
         private static SpotifyAPI sAPI;
         private static Status status = new Status();
@@ -21,6 +17,8 @@ namespace SpotifyPlugin
 
         private static DateTime lastCallTime = DateTime.Now;
         public static TimeSpan lastCall { get { return DateTime.Now - lastCallTime; } }
+
+        public static int timeout = 5000;
 
         public static Status Current_Status
         {
@@ -39,7 +37,7 @@ namespace SpotifyPlugin
             }
         }
 
-        public static string getArt(int resolution = 300)
+        public static string getArt(int resolution, string defaultPath, string coverPath)
         {
             // Image changed
             if (albumURI != status.track.album_resource.uri)
@@ -49,10 +47,10 @@ namespace SpotifyPlugin
                 // Default image
                 useCover = false;
                 // Get image in separate thread
-                Thread t = new Thread(() => GetAlbumImage(resolution));
+                Thread t = new Thread(() => GetAlbumImage(resolution, coverPath));
                 t.Start();
             }
-            return useCover ? pathCover : pathDefault;
+            return useCover ? coverPath : defaultPath;
         }
 
         private static byte[] ReadStream(Stream input)
@@ -69,7 +67,7 @@ namespace SpotifyPlugin
             }
         }
 
-        public static void GetImageFromUrl(string url)
+        public static void GetImageFromUrl(string url, string filePath)
         {
             // Create http request
             HttpWebRequest httpWebRequest = (HttpWebRequest)HttpWebRequest.Create(url);
@@ -83,7 +81,7 @@ namespace SpotifyPlugin
                     // Make sure the path folder exists
                     System.IO.Directory.CreateDirectory(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "/Rainmeter/SpotifyPlugin");
                     // Write stream to file
-                    File.WriteAllBytes(pathCover, buffer);
+                    File.WriteAllBytes(filePath, buffer);
                 }
             }
             // Change back to cover image
@@ -91,7 +89,7 @@ namespace SpotifyPlugin
             Out.Log(Verbosity.DEBUG, "Artwork updated");
         }
 
-        public static void GetAlbumImage(int resolution)
+        public static void GetAlbumImage(int resolution, string filePath)
         {
             try
             {
@@ -115,7 +113,7 @@ namespace SpotifyPlugin
 
                 Out.Log(Verbosity.DEBUG, "Artwork found, downloading image...");
 
-                GetImageFromUrl(imgUrl);
+                GetImageFromUrl(imgUrl, filePath);
 
             }
             catch (Exception e)
