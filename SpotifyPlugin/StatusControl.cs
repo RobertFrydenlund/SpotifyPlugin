@@ -20,6 +20,8 @@ namespace SpotifyPlugin
 
         public static int timeout = 5000;
 
+        public static String CoverPath = "";
+
         public static Status Current_Status
         {
             get
@@ -86,6 +88,7 @@ namespace SpotifyPlugin
             }
             // Change back to cover image
             useCover = true;
+            CoverPath = url;
             Out.Log(Verbosity.DEBUG, "Artwork updated");
         }
 
