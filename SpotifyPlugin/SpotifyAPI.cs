@@ -82,7 +82,7 @@ namespace SpotifyPlugin
             procs = Process.GetProcessesByName("Spotify");
             if (procs.Length < 1)
             {
-                Rm.Log(Rm.LogType.Warning, "Spotify is not running");
+                Rm.Log(Rm.LogType.Debug, "Spotify is not running");
                 //Out.Log(Verbosity.WARNING, "Spotify is not running");
                 return false;
             }
