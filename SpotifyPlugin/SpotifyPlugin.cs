@@ -234,6 +234,9 @@ namespace SpotifyPlugin
                 case MeasureType.AlbumName:
                     return toUTF8(Current_Status.track.album_resource.name);
 
+                case MeasureType.CoverPath:
+                    return StatusControl.CoverPath;
+
             }
 
             // MeasureType.Major, MeasureType.Minor, and MeasureType.Number are
