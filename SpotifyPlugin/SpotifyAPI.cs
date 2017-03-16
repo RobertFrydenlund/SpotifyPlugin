@@ -19,7 +19,8 @@ namespace SpotifyPlugin
 
         string oauth;
         string csrf;
-        TimeoutWebClient wc;
+        TimeoutWebClient wcoauth;
+        TimeoutWebClient wccsrf;
 
         private static Process[] procs;
 
@@ -43,12 +44,17 @@ namespace SpotifyPlugin
                     return;
 
                 #region Web Client config
-                wc = new TimeoutWebClient();
-                wc.Timeout = StatusControl.timeout;
-                
+                wccsrf = new TimeoutWebClient();
+                wccsrf.Timeout = StatusControl.timeout;
+
                 // Must have these headers
-                wc.Headers.Add("Origin", "https://embed.spotify.com");
-                wc.Headers[HttpRequestHeader.UserAgent] = String.Format("SpotifyPlugin {0}", System.Reflection.Assembly.GetCallingAssembly().GetName().Version.ToString());
+                wccsrf.Headers.Add("Origin", "https://embed.spotify.com");
+                wccsrf.Headers[HttpRequestHeader.UserAgent] = String.Format("SpotifyPlugin {0}", System.Reflection.Assembly.GetCallingAssembly().GetName().Version.ToString());
+
+
+                wcoauth = new TimeoutWebClient();
+                wcoauth.Timeout = StatusControl.timeout;
+                wcoauth.Headers[HttpRequestHeader.UserAgent] = String.Format("SpotifyPlugin {0}", System.Reflection.Assembly.GetCallingAssembly().GetName().Version.ToString());
                 #endregion
 
                 // Authenticate
@@ -138,11 +144,11 @@ namespace SpotifyPlugin
         private void CheckAuthentication()
         {
             // CSRF
-            string rcsrf = wc.DownloadString("http://localhost:4380/simplecsrf/token.json");
+            string rcsrf = wccsrf.DownloadString("http://localhost:4380/simplecsrf/token.json");
             csrf = JObject.Parse(rcsrf).GetValue("token").ToString();
 
             //Checking if old token is valid
-            string authCheck = wc.DownloadString("http://localhost:4380/remote/status.json?&oauth=" + oauth + "&csrf=" + csrf);
+            string authCheck = wccsrf.DownloadString("http://localhost:4380/remote/status.json?&oauth=" + oauth + "&csrf=" + csrf);
 
             // TODO Should have a proper json convert here, in case there are songs named ""error""
             if (authCheck.Contains("\"error\""))
@@ -158,7 +164,7 @@ namespace SpotifyPlugin
             Rm.Log(Rm.LogType.Debug, "Fetching new token");
             //Out.Log(Verbosity.DEBUG, "Fetching new token");
             // OAUTH
-            string roauth = wc.DownloadString("https://open.spotify.com/token");
+            string roauth = wcoauth.DownloadString("https://open.spotify.com/token");
 
             if (!_active) throw new ThreadStateException("API thread no longer active");
 
@@ -167,7 +173,7 @@ namespace SpotifyPlugin
             //Out.Log(Verbosity.DEBUG, "Recieved token {0}", oauth);
 
             // CSRF
-            string rcsrf = wc.DownloadString("http://localhost:4380/simplecsrf/token.json");
+            string rcsrf = wccsrf.DownloadString("http://localhost:4380/simplecsrf/token.json");
             csrf = JObject.Parse(rcsrf).GetValue("token").ToString();
         }
 
@@ -177,7 +183,7 @@ namespace SpotifyPlugin
             {
                 while (StatusControl.lastCall.Seconds < 5)
                 {
-                    rawData = wc.DownloadString("http://localhost:4380/remote/status.json?&oauth=" + oauth + "&csrf=" + csrf);
+                    rawData = wccsrf.DownloadString("http://localhost:4380/remote/status.json?&oauth=" + oauth + "&csrf=" + csrf);
 
                     Status s = JsonConvert.DeserializeObject<Status>(rawData);
                     s.token = oauth;
