@@ -35,14 +35,20 @@ namespace SpotifyPlugin
         public string uri { get; set; }
         public Location location { get; set; }
     }
+
+    public class Error
+    {
+        public string type;
+        public string message;
+    }
+
     public class Status
     {
 
         public string rawData { get; set; }
         public Status()
         {
-            token = "t";
-            error = "";
+            token = "";
             rawData = "";
             version = 0;
             client_version = "";
@@ -61,7 +67,7 @@ namespace SpotifyPlugin
         }
 
         public string token { get; set;}
-        public string error { get; set; }
+        public Error error { get; set; }
         public Track track { get; set; }
 
         public int version { get; set; }

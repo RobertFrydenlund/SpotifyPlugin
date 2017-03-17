@@ -5,7 +5,7 @@ using System.Text;
 
 namespace SpotifyPlugin
 {
-    internal class Measure
+    public class Measure
     {
         public static string coverPath = "";
         public static string defaultPath = "";
@@ -43,26 +43,39 @@ namespace SpotifyPlugin
             AlbumArt300,
             AlbumArt640,
             Tags,
-            CoverPath
+            CoverPath,
+            Data
         }
 
         private MeasureType Type = MeasureType.Running;
 
-        internal Measure()
+        public Measure()
         {
 
         }
 
-        internal void Reload(Rainmeter.API rm, ref double maxValue)
+        public void Reload(Rainmeter.API rm, ref double maxValue)
         {
             bool art = false;
             string type = rm.ReadString("Type", "");
             int.TryParse(rm.ReadString("Decimals", "0"), out numDecimals);
             switch (type.ToLowerInvariant())
             {
+                case "data":
+                    Type = MeasureType.Data;
+                    break;
                 case "debug":
                     EnableDebugMode(rm.ReadInt("Verbosity", 0));
                     Type = MeasureType.DEBUG;
+                    break;
+                case "trackuri":
+                    Type = MeasureType.TrackURI;
+                    break;
+                case "albumuri":
+                    Type = MeasureType.AlbumURI;
+                    break;
+                case "artisturi":
+                    Type = MeasureType.ArtistURI;
                     break;
                 case "tags":
                     Type = MeasureType.Tags;
@@ -183,12 +196,21 @@ namespace SpotifyPlugin
         static extern bool AllocConsole();
 
 
-        internal string GetString()
+        public string GetString()
         {
             // Update status
             Current_Status = StatusControl.Current_Status;
             switch (Type)
             {
+
+                case MeasureType.TrackURI:
+                    return this.Current_Status.track.track_resource.uri;
+
+                case MeasureType.AlbumURI:
+                    return this.Current_Status.track.album_resource.uri;
+
+                case MeasureType.ArtistURI:
+                    return this.Current_Status.track.artist_resource.uri;
 
                 case MeasureType.Progress:
                     //return ((Current_Status.playing_position / Current_Status.track.length) * 100).ToString();//"##0"
@@ -234,6 +256,8 @@ namespace SpotifyPlugin
                 case MeasureType.AlbumName:
                     return toUTF8(Current_Status.track.album_resource.name);
 
+                case MeasureType.CoverPath:
+                    return StatusControl.CoverPath;
             }
 
             // MeasureType.Major, MeasureType.Minor, and MeasureType.Number are

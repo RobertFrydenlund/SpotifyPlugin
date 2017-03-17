@@ -20,12 +20,14 @@ namespace SpotifyPlugin
 
         public static int timeout = 5000;
 
+        public static String CoverPath = "";
+
         public static Status Current_Status
         {
             get
             {
                 lastCallTime = DateTime.Now;
-                if (sAPI == null || sAPI.active == false)
+                if (sAPI == null || sAPI.Active == false)
                 {
                     sAPI = new SpotifyAPI(200, status.token);
                 }
@@ -86,6 +88,7 @@ namespace SpotifyPlugin
             }
             // Change back to cover image
             useCover = true;
+            CoverPath = url;
             Out.Log(Verbosity.DEBUG, "Artwork updated");
         }
 
