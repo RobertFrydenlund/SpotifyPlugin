@@ -27,7 +27,7 @@ namespace SpotifyPlugin
 
         public SpotifyAPI(int updateRate, string token)
         {
-            Out.Log(Verbosity.DEBUG, "SpotifyAPI started...");
+            Out.Log(Rm.LogType.Debug, "SpotifyAPI started...");
 
             this.updateRate = updateRate;
             this.oauth = token;
@@ -75,7 +75,7 @@ namespace SpotifyPlugin
             procs = Process.GetProcessesByName("Spotify");
             if (procs.Length < 1)
             {
-                Out.Log(Verbosity.DEBUG, "Spotify is not running");
+                Out.Log(Rm.LogType.Debug, "Spotify is not running");
                 return false;
             }
             else
@@ -85,7 +85,7 @@ namespace SpotifyPlugin
 
                 if (Process.GetProcessesByName("SpotifyWebHelper").Length < 1)
                 {
-                    Out.Log(Verbosity.DEBUG, "SpotifyWebHelper is not running");
+                    Out.Log(Rm.LogType.Debug, "SpotifyWebHelper is not running");
                     StartWebHelper();
                 }
             }
@@ -110,7 +110,7 @@ namespace SpotifyPlugin
                 }
                 catch
                 {
-                    Out.Log(Verbosity.WARNING, "Can't find SpotifyWebHelper.exe, try starting it manually from your current spotify folder");
+                    Out.Log(Rm.LogType.Warning, "Can't find SpotifyWebHelper.exe, try starting it manually from your current spotify folder");
                 }
             }
         }
@@ -134,7 +134,7 @@ namespace SpotifyPlugin
             string rcsrf = wc.DownloadString("http://spotifyPlugin.spotilocal.com:4380/simplecsrf/token.json");
             csrf = JObject.Parse(rcsrf).GetValue("token").ToString();
 
-            Out.Log(Verbosity.DEBUG, "Fetching new token");
+            Out.Log(Rm.LogType.Debug, "Fetching new token");
             // OAUTH
             // Why does it reset user-agent, but not origin?
             wc.Headers[HttpRequestHeader.UserAgent] = $"SpotifyPlugin {System.Reflection.Assembly.GetCallingAssembly().GetName().Version.ToString()}";
@@ -143,7 +143,7 @@ namespace SpotifyPlugin
             // {"t": "sdfasdfsadgdsfg"}
             oauth = JObject.Parse(roauth).GetValue("t").ToString();
 
-            Out.Log(Verbosity.DEBUG, "Recieved token {0}", oauth);
+            Out.Log(Rm.LogType.Debug, "Recieved token {0}", oauth);
             
         }
 
@@ -165,7 +165,7 @@ namespace SpotifyPlugin
                     {
                         switch (s.error.type)
                         {
-                            // Invalid 4102-oauth token, 4107-rfid
+                            // Invalid 4102-oauth token, 4107-rfid, 4109 - "Invalid Csrf path"
                             case "4107":
                             case "4102":
                                 SetupAuthentication();

@@ -186,7 +186,6 @@ namespace SpotifyPlugin
 
             DEBUG = true;
             AllocConsole();
-            Out.CurrentVerbosity = (Verbosity)i;
             Console.WriteLine("Console window activated!");
         }
 

@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Threading;
+using Rainmeter;
 
 namespace SpotifyPlugin
 {
@@ -89,7 +90,7 @@ namespace SpotifyPlugin
             // Change back to cover image
             useCover = true;
             CoverPath = url;
-            Out.Log(Verbosity.DEBUG, "Artwork updated");
+            Out.Log(API.LogType.Debug, "Artwork updated");
         }
 
         public static void GetAlbumImage(int resolution, string filePath)
@@ -103,7 +104,7 @@ namespace SpotifyPlugin
                     // webpage.Headers[HttpRequestHeader.UserAgent] = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.121 Safari/535.2";
                     webpage.Headers[HttpRequestHeader.UserAgent] = String.Format("SpotifyPlugin {0}", System.Reflection.Assembly.GetCallingAssembly().GetName().Version.ToString());
 
-                    Out.Log(Verbosity.DEBUG, "Downloading embed page: {0}", status.track.album_resource.uri);
+                    Out.Log(API.LogType.Debug, "Downloading embed page: {0}", status.track.album_resource.uri);
                     rawData = webpage.DownloadString("https://embed.spotify.com/oembed/?url=" + status.track.album_resource.uri);
                 }
 
@@ -114,7 +115,7 @@ namespace SpotifyPlugin
                 // Specify album resolution
                 imgUrl = imgUrl.Replace("cover", resolution.ToString());
 
-                Out.Log(Verbosity.DEBUG, "Artwork found, downloading image...");
+                Out.Log(API.LogType.Debug, "Artwork found, downloading image...");
 
                 GetImageFromUrl(imgUrl, filePath);
 
