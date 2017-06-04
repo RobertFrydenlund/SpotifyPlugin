@@ -164,13 +164,13 @@ namespace SpotifyPlugin
                 case MeasureType.Shuffle:
                     return Current_Status.shuffle ? 1 : 0;
 
-                case MeasureType.PositionSeconds:
+                case MeasureType.Position:
                     return Current_Status.playing_position;
 
                 case MeasureType.Playing:
                     return Current_Status.playing ? 1 : 0;
 
-                case MeasureType.LengthSeconds:
+                case MeasureType.Length:
                     return Current_Status.track.length;
 
                 case MeasureType.Progress:
