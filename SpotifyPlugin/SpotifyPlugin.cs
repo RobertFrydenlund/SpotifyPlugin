@@ -159,13 +159,13 @@ namespace SpotifyPlugin
                 case MeasureType.Shuffle:
                     return (parent.Status?.Shuffle).GetValueOrDefault() ? 1 : 0;
 
-                case MeasureType.PositionSeconds:
+                case MeasureType.Position:
                     return (parent.Status?.PlayingPosition).GetValueOrDefault();
 
                 case MeasureType.Playing:
                     return (parent.Status?.Playing).GetValueOrDefault() ? 1 : 0;
 
-                case MeasureType.LengthSeconds:
+                case MeasureType.Length:
                     return (parent.Status?.Track?.Length).GetValueOrDefault();
 
                 case MeasureType.Progress:
