@@ -1,7 +1,7 @@
 ﻿using Rainmeter;
 using System;
 using System.Runtime.InteropServices;
-using System.Text;
+using System.Text.RegularExpressions;
 
 namespace SpotifyPlugin
 {
@@ -10,8 +10,6 @@ namespace SpotifyPlugin
         public static string coverPath = "";
         public static string defaultPath = "";
 
-        bool DEBUG = false;
-        Status Current_Status;
         int numDecimals = 0;
 
         enum MeasureType
@@ -46,12 +44,13 @@ namespace SpotifyPlugin
             CoverPath,
             Data
         }
-
         private MeasureType Type = MeasureType.Running;
 
-        public Measure()
-        {
+        Parent parent;
 
+        public Measure(Parent parent)
+        {
+            this.parent = parent;
         }
 
         public void Reload(Rainmeter.API rm, ref double maxValue)
@@ -63,10 +62,6 @@ namespace SpotifyPlugin
             {
                 case "data":
                     Type = MeasureType.Data;
-                    break;
-                case "debug":
-                    EnableDebugMode(rm.ReadInt("Verbosity", 0));
-                    Type = MeasureType.DEBUG;
                     break;
                 case "trackuri":
                     Type = MeasureType.TrackURI;
@@ -148,117 +143,99 @@ namespace SpotifyPlugin
                 }
             }
         }
-
+#if DEBUG
+        public double Update()
+#else
         internal double Update()
+#endif
         {
-            //API.Log(API.LogType.Error, StatusControl.Current_Status.rawData);
-            // Update status
-            Current_Status = StatusControl.Current_Status;
             switch (Type)
             {
                 case MeasureType.DEBUG:
                     return 0;
                 case MeasureType.Repeat:
-                    return Current_Status.repeat ? 1 : 0;
+                    return (parent.Status?.Repeat).GetValueOrDefault() ? 1 : 0;
 
                 case MeasureType.Shuffle:
-                    return Current_Status.shuffle ? 1 : 0;
+                    return (parent.Status?.Shuffle).GetValueOrDefault() ? 1 : 0;
 
                 case MeasureType.Position:
-                    return Current_Status.playing_position;
+                    return (parent.Status?.PlayingPosition).GetValueOrDefault();
 
                 case MeasureType.Playing:
-                    return Current_Status.playing ? 1 : 0;
+                    return (parent.Status?.Playing).GetValueOrDefault() ? 1 : 0;
 
                 case MeasureType.Length:
-                    return Current_Status.track.length;
+                    return (parent.Status?.Track?.Length).GetValueOrDefault();
 
                 case MeasureType.Progress:
-                    return Current_Status.playing_position / (Current_Status.track.length * 1.00);
-
+                    double? o = parent.Status?.PlayingPosition / parent.Status?.Track?.Length;
+                    return o.GetValueOrDefault();
             }
             return 0.0;
         }
 
-        private void EnableDebugMode(int i)
-        {
-            if (DEBUG == true) return;
-
-            DEBUG = true;
-            AllocConsole();
-            Console.WriteLine("Console window activated!");
-        }
-
-        // CONSOLE
-        [DllImport("kernel32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool AllocConsole();
-
-
+#if DEBUG
         public string GetString()
+#else
+        internal string GetString()
+#endif
         {
-            // Update status
-            Current_Status = StatusControl.Current_Status;
             switch (Type)
             {
-
                 case MeasureType.TrackURI:
-                    return this.Current_Status.track.track_resource.uri;
+                    return parent.Status?.Track?.TrackResource?.Uri;
 
                 case MeasureType.AlbumURI:
-                    return this.Current_Status.track.album_resource.uri;
+                    return parent.Status?.Track?.AlbumResource?.Uri;
 
                 case MeasureType.ArtistURI:
-                    return this.Current_Status.track.artist_resource.uri;
-
-                case MeasureType.Progress:
-                    //return ((Current_Status.playing_position / Current_Status.track.length) * 100).ToString();//"##0"
-                    return ((Current_Status.playing_position / Current_Status.track.length) * 100).ToString("N"+numDecimals);//"##0"
-
+                    return parent.Status?.Track?.ArtistResource?.Uri;
+                    
                 case MeasureType.Volume:
-                    double volume = 100 * Current_Status.volume;
-                    return volume.ToString("##0");
+                    return (parent.Status?.Volume * 100).ToString();
 
                 case MeasureType.Position:
-                    double playingPosition = Current_Status.playing_position;
+                    double playingPosition = (parent.Status?.PlayingPosition).GetValueOrDefault();
                     double sec = Math.Floor(playingPosition % 60);
                     double min = Math.Floor(playingPosition / 60);
                     return String.Format("{0}:{1}", min.ToString("#00"), sec.ToString("00"));
 
                 case MeasureType.Length:
-                    double trackLength = Current_Status.track.length;
+                    double trackLength = (parent.Status?.Track?.Length).GetValueOrDefault();
                     double secl = Math.Floor(trackLength % 60);
                     double minl = Math.Floor(trackLength / 60);
                     return String.Format("{0}:{1}", minl.ToString("#00"), secl.ToString("00"));
 
                 case MeasureType.TrackName:
-                    return toUTF8(Current_Status.track.track_resource.name);
+                    return parent.Status?.Track?.TrackResource?.Name;
 
                 case MeasureType.ArtistName:
-                    return toUTF8(Current_Status.track.artist_resource.name);
+                    return parent.Status?.Track?.ArtistResource?.Name;
 
+                // TODO
                 case MeasureType.AlbumArt60:
-                    return StatusControl.getArt(60, defaultPath, coverPath);
+                    return AlbumArt.getArt(parent.Status?.Track?.AlbumResource?.Uri, 60, defaultPath, coverPath);
 
                 case MeasureType.AlbumArt85:
-                    return StatusControl.getArt(85, defaultPath, coverPath);
+                    return AlbumArt.getArt(parent.Status?.Track?.AlbumResource?.Uri, 85, defaultPath, coverPath);
 
                 case MeasureType.AlbumArt120:
-                    return StatusControl.getArt(120, defaultPath, coverPath);
+                    return AlbumArt.getArt(parent.Status?.Track?.AlbumResource?.Uri, 120, defaultPath, coverPath);
 
                 case MeasureType.AlbumArt300:
-                    return StatusControl.getArt(300, defaultPath, coverPath);
+                    return AlbumArt.getArt(parent.Status?.Track?.AlbumResource?.Uri, 300, defaultPath, coverPath);
 
                 case MeasureType.AlbumArt640:
-                    return StatusControl.getArt(640, defaultPath, coverPath);
+                    return AlbumArt.getArt(parent.Status?.Track?.AlbumResource?.Uri, 640, defaultPath, coverPath);
 
                 case MeasureType.AlbumName:
-                    return toUTF8(Current_Status.track.album_resource.name);
+                    return parent.Status?.Track?.AlbumResource?.Name;
 
                 case MeasureType.CoverPath:
-                    return StatusControl.CoverPath;
+                    return null;
+                    //return StatusControl.CoverPath;
             }
-
             // MeasureType.Major, MeasureType.Minor, and MeasureType.Number are
             // numbers. Therefore, null is returned here for them. This is to
             // inform Rainmeter that it can treat those types as numbers.
@@ -266,15 +243,84 @@ namespace SpotifyPlugin
             return null;
         }
 
-        private string toUTF8(string s)
+        internal void ExecuteBang(string arg)
         {
-            byte[] bytes = Encoding.Default.GetBytes(s);
-            return Encoding.UTF8.GetString(bytes);
-        }
+            string[] args = Regex.Split(arg, " ");
+            switch (args[0].ToLowerInvariant())
+            {
+                // Single commands
+                case "playpause":
+                    if (parent.Status.Playing)
+                    {
+                        goto case "pause";
+                    }
+                    else
+                    {
+                        goto case "play";
+                    }
+                case "play":
+                    parent.WebAPI?.ResumePlayback();
+                    return;
+                case "pause":
+                    parent.WebAPI?.PausePlayback();
+                    return;
+                case "next":
+                    parent.WebAPI?.SkipPlaybackToNext();
+                    return;
+                case "previous":
+                    // TODO always skips to previous, should probably seek to 0 if progress > threshold
+                    parent.WebAPI?.SkipPlaybackToPrevious();
+                    return;
 
-        internal void ExecuteBang(string p)
-        {
-            //throw new NotImplementedException(p);
+                // Double commands
+                case "volume":
+                    int volume;
+                    if (!Int32.TryParse(args[1], out volume))
+                    {
+                        API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer between 0-100.");
+                        return;
+                    }
+                    parent.WebAPI?.SetVolume(volume);
+                    return;
+                case "seek":
+                    int seek;
+                    if (!Int32.TryParse(args[1], out seek))
+                    {
+                        API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer between 0-100.");
+                        return;
+                    }
+                    parent.WebAPI?.SeekPlayback(Int32.Parse(args[1]));
+                    return;
+                case "seekpercent":
+                    int seekpercent;
+                    if (!Int32.TryParse(args[1], out seekpercent))
+                    {
+                        API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer between 0-100.");
+                        return;
+                    }
+                    parent.WebAPI?.SeekPlayback((parent.Status.Track.Length * Int32.Parse(args[1])) / 100);
+                    return;
+                case "shuffle":
+                    bool shuffle;
+                    if (!bool.TryParse(args[1], out shuffle))
+                    {
+                        API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be either True or False");
+                        return;
+                    }
+                    parent.WebAPI?.SetShuffle(shuffle);
+                    return;
+                case "repeat":
+                    SpotifyAPI.Web.Enums.RepeatState repeat;
+                    if (!Enum.TryParse(args[1], out repeat))
+                    {
+                        API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be either Track, Context or Off");
+                        return;
+                    }
+                    parent.WebAPI?.SetRepeatMode(repeat);
+                    return;
+            }
+
+            API.Log(API.LogType.Warning, $"Unknown command: {arg}");
         }
     }
 
@@ -282,10 +328,13 @@ namespace SpotifyPlugin
     {
         static IntPtr StringBuffer = IntPtr.Zero;
 
+        static Parent parent;
+
         [DllExport]
         public static void Initialize(ref IntPtr data, IntPtr rm)
         {
-            data = GCHandle.ToIntPtr(GCHandle.Alloc(new Measure()));
+            if (parent == null) { parent = new Parent(); }
+            data = GCHandle.ToIntPtr(GCHandle.Alloc(new Measure(parent)));
         }
 
         [DllExport]
@@ -333,5 +382,11 @@ namespace SpotifyPlugin
             return StringBuffer;
         }
 
+        [DllExport]
+        public static void ExecuteBang(IntPtr data, IntPtr args)
+        {
+            Measure measure = (Measure)GCHandle.FromIntPtr(data).Target;
+            measure.ExecuteBang(Marshal.PtrToStringUni(args));
+        }
     }
 }

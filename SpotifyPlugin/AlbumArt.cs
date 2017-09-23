@@ -3,50 +3,25 @@ using System;
 using System.IO;
 using System.Net;
 using System.Threading;
-using Rainmeter;
 
 namespace SpotifyPlugin
 {
-    public static class StatusControl
+    // TODO dont need this, SpotifyAPI already has this implemented. Fix before 2.0.0
+    class AlbumArt
     {
+        private static bool useCover;
 
-        private static SpotifyAPI sAPI;
-        private static Status status = new Status();
+        public static string CoverPath { get; private set; }
+        public static string AlbumUri { get; private set; }
 
-        private static bool useCover = true;
-        private static string albumURI = "";
-
-        private static DateTime lastCallTime = DateTime.Now;
-        public static TimeSpan lastCall { get { return DateTime.Now - lastCallTime; } }
-
-        public static int timeout = 5000;
-
-        public static String CoverPath = "";
-
-        public static Status Current_Status
-        {
-            get
-            {
-                lastCallTime = DateTime.Now;
-                if (sAPI == null || sAPI.Active == false)
-                {
-                    sAPI = new SpotifyAPI(200, status.token);
-                }
-                return status;
-            }
-            set
-            {
-                status = value;
-            }
-        }
-
-        public static string getArt(int resolution, string defaultPath, string coverPath)
+        public static string getArt(string albumUri, int resolution, string defaultPath, string coverPath)
         {
             // Image changed
-            if (albumURI != status.track.album_resource.uri)
+            if (AlbumUri != albumUri)
             {
+                Rainmeter.API.Log(Rainmeter.API.LogType.Notice, "Artwork change detected");
                 // Update URI
-                albumURI = status.track.album_resource.uri;
+                AlbumUri = albumUri;
                 // Default image
                 useCover = false;
                 // Get image in separate thread
@@ -90,7 +65,7 @@ namespace SpotifyPlugin
             // Change back to cover image
             useCover = true;
             CoverPath = url;
-            Out.Log(API.LogType.Debug, "Artwork updated");
+            //Out.Log(API.LogType.Debug, "Artwork updated");
         }
 
         public static void GetAlbumImage(int resolution, string filePath)
@@ -104,8 +79,8 @@ namespace SpotifyPlugin
                     // webpage.Headers[HttpRequestHeader.UserAgent] = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.121 Safari/535.2";
                     webpage.Headers[HttpRequestHeader.UserAgent] = String.Format("SpotifyPlugin {0}", System.Reflection.Assembly.GetCallingAssembly().GetName().Version.ToString());
 
-                    Out.Log(API.LogType.Debug, "Downloading embed page: {0}", status.track.album_resource.uri);
-                    rawData = webpage.DownloadString("https://embed.spotify.com/oembed/?url=" + status.track.album_resource.uri);
+                    //Out.Log(API.LogType.Debug, "Downloading embed page: {0}", status.track.album_resource.uri);
+                    rawData = webpage.DownloadString("https://embed.spotify.com/oembed/?url=" + AlbumUri);
                 }
 
                 JObject jo = JObject.Parse(rawData);
@@ -115,7 +90,7 @@ namespace SpotifyPlugin
                 // Specify album resolution
                 imgUrl = imgUrl.Replace("cover", resolution.ToString());
 
-                Out.Log(API.LogType.Debug, "Artwork found, downloading image...");
+                //Out.Log(API.LogType.Debug, "Artwork found, downloading image...");
 
                 GetImageFromUrl(imgUrl, filePath);
 
@@ -125,15 +100,5 @@ namespace SpotifyPlugin
                 Out.ChrashDump(e);
             }
         }
-
-        public static string getData()
-        {
-            if (sAPI != null)
-            {
-                return sAPI.rawData;
-            }
-            return "No data gathered yet.";
-        }
-
     }
 }
