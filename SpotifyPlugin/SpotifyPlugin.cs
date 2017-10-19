@@ -169,7 +169,7 @@ namespace SpotifyPlugin
                     return (parent.Status?.Track?.Length).GetValueOrDefault();
 
                 case MeasureType.Progress:
-                    double? o = parent.Status?.PlayingPosition / parent.Status?.Track?.Length;
+                    double? o = 100 * parent.Status?.PlayingPosition / parent.Status?.Track?.Length;
                     return o.GetValueOrDefault();
             }
             return 0.0;
@@ -289,16 +289,18 @@ namespace SpotifyPlugin
                         API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer between 0-100.");
                         return;
                     }
-                    parent.WebAPI?.SeekPlayback(Int32.Parse(args[1]));
+                    parent.WebAPI?.SeekPlayback(seek);
                     return;
                 case "seekpercent":
-                    int seekpercent;
-                    if (!Int32.TryParse(args[1], out seekpercent))
+                case "setposition":
+                    float position;
+                    if (!float.TryParse(args[1], out position))
                     {
-                        API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer between 0-100.");
+                        API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be a number from 0 to 100.");
                         return;
                     }
-                    parent.WebAPI?.SeekPlayback((parent.Status.Track.Length * Int32.Parse(args[1])) / 100);
+                    // TODO error 405
+                    parent.WebAPI?.SeekPlayback((int)(parent.Status?.Track?.Length * position) / 100);
                     return;
                 case "shuffle":
                     bool shuffle;
