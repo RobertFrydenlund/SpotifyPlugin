@@ -26,7 +26,8 @@ namespace SpotifyPlugin
 
         public Parent()
         {
-            Authenticate();
+            // Set up web API in different thread
+            new Thread(Authenticate).Start();
 
             LocalAPI = new SpotifyLocalAPI();
             LocalAPI.Connect();
@@ -96,7 +97,6 @@ namespace SpotifyPlugin
 
             return ApiFromToken(token);
         }
-
 
         private SpotifyWebAPI ApiFromToken(SpotifyAPI.Web.Models.Token token)
         {

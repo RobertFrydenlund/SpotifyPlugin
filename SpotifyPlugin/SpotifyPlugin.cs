@@ -2,177 +2,52 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace SpotifyPlugin
 {
     public class Measure
     {
-        public static string coverPath = "";
-        public static string defaultPath = "";
+        /// <summary>
+        /// Cover art save path.
+        /// </summary>
+        public string coverPath = "";
 
-        int numDecimals = 0;
+        /// <summary>
+        /// Default path.
+        /// </summary>
+        public string defaultPath = "";
 
-        enum MeasureType
-        {
-            DEBUG,
-            Running,
-            Playing,
-            Shuffle,
-            Repeat,
-            Volume,
-            Online,
-            Progress,
-            Position,
-            PositionSeconds,
-            Length,
-            LengthSeconds,
-            TrackName,
-            TrackURI,
-            TrackURL,
-            ArtistName,
-            ArtistURI,
-            ArtistURL,
-            AlbumName,
-            AlbumURI,
-            AlbumURL,
-            AlbumArt60,
-            AlbumArt85,
-            AlbumArt120,
-            AlbumArt300,
-            AlbumArt640,
-            Tags,
-            CoverPath,
-            Data
-        }
-        private MeasureType Type = MeasureType.Running;
+        /// <summary>
+        /// Measure type.
+        /// </summary>
+        public string measureType = "";
 
-        Parent parent;
+        /// <summary>
+        /// Cover image resolution.
+        /// </summary>
+        public int artResolution = 300;
+
+        /// <summary>
+        /// Manages actually talking to spotify.
+        /// </summary>
+        private Parent parent;
 
         public Measure(Parent parent)
         {
             this.parent = parent;
         }
-
+        
         public void Reload(Rainmeter.API rm, ref double maxValue)
         {
-            bool art = false;
-            string type = rm.ReadString("Type", "");
-            int.TryParse(rm.ReadString("Decimals", "0"), out numDecimals);
-            switch (type.ToLowerInvariant())
+            measureType = rm.ReadString("Type", "").ToLowerInvariant();
+            if (measureType == "albumart")
             {
-                case "data":
-                    Type = MeasureType.Data;
-                    break;
-                case "trackuri":
-                    Type = MeasureType.TrackURI;
-                    break;
-                case "albumuri":
-                    Type = MeasureType.AlbumURI;
-                    break;
-                case "artisturi":
-                    Type = MeasureType.ArtistURI;
-                    break;
-                case "tags":
-                    Type = MeasureType.Tags;
-                    break;
-                case "shuffle":
-                    Type = MeasureType.Shuffle;
-                    break;
-                case "repeat":
-                    Type = MeasureType.Repeat;
-                    break;
-                case "position":
-                    Type = MeasureType.Position;
-                    break;
-                case "playing":
-                    Type = MeasureType.Playing;
-                    break;
-                case "progress":
-                    Type = MeasureType.Progress;
-                    break;
-                case "length":
-                    Type = MeasureType.Length;
-                    break;
-                case "volume":
-                    Type = MeasureType.Volume;
-                    break;
-                case "trackname":
-                    Type = MeasureType.TrackName;
-                    break;
-                case "artistname":
-                    Type = MeasureType.ArtistName;
-                    break;
-                case "albumname":
-                    Type = MeasureType.AlbumName;
-                    break;
-                case "albumart":
-                    coverPath = rm.ReadPath("CoverPath", "");
-                    defaultPath = rm.ReadPath("DefaultPath", "");
-                    // 60, 85, 120, 300, and 640.
-                    art = true;
-                    break;
-                case "coverpath":
-                    Type = MeasureType.CoverPath;
-                    break;
-                default:
-                    API.Log(API.LogType.Error, "SpotifyPlugin.dll: Type=" + type + " not valid");
-                    Type = MeasureType.Length;
-                    break;
+                // TODO get a proper default path
+                coverPath = rm.ReadPath("CoverPath", "");
+                defaultPath = rm.ReadPath("DefaultPath", "");
+                artResolution = rm.ReadInt("Res", 300);
             }
-            if (art)
-            {
-                string resolution = rm.ReadString("Res", "");
-
-                switch (resolution.ToLowerInvariant())
-                {
-                    case "60":
-                        Type = MeasureType.AlbumArt60;
-                        break;
-                    case "85":
-                        Type = MeasureType.AlbumArt85;
-                        break;
-                    case "120":
-                        Type = MeasureType.AlbumArt120;
-                        break;
-                    case "640":
-                        Type = MeasureType.AlbumArt640;
-                        break;
-                    default:
-                        Type = MeasureType.AlbumArt300;
-                        break;
-                }
-            }
-        }
-#if DEBUG
-        public double Update()
-#else
-        internal double Update()
-#endif
-        {
-            switch (Type)
-            {
-                case MeasureType.DEBUG:
-                    return 0;
-                case MeasureType.Repeat:
-                    return (parent.Status?.Repeat).GetValueOrDefault() ? 1 : 0;
-
-                case MeasureType.Shuffle:
-                    return (parent.Status?.Shuffle).GetValueOrDefault() ? 1 : 0;
-
-                case MeasureType.Position:
-                    return (parent.Status?.PlayingPosition).GetValueOrDefault();
-
-                case MeasureType.Playing:
-                    return (parent.Status?.Playing).GetValueOrDefault() ? 1 : 0;
-
-                case MeasureType.Length:
-                    return (parent.Status?.Track?.Length).GetValueOrDefault();
-
-                case MeasureType.Progress:
-                    double? o = 100 * parent.Status?.PlayingPosition / parent.Status?.Track?.Length;
-                    return o.GetValueOrDefault();
-            }
-            return 0.0;
         }
 
 #if DEBUG
@@ -181,60 +56,33 @@ namespace SpotifyPlugin
         internal string GetString()
 #endif
         {
-            switch (Type)
+            switch (measureType)
             {
-                case MeasureType.TrackURI:
-                    return parent.Status?.Track?.TrackResource?.Uri;
+                case "trackname":
+                case "track":
+                    return parent.Status?.Track?.TrackResource?.Name ?? "";
 
-                case MeasureType.AlbumURI:
-                    return parent.Status?.Track?.AlbumResource?.Uri;
+                case "artistname":
+                case "artist":
+                    return parent.Status?.Track?.ArtistResource?.Name ?? "";
 
-                case MeasureType.ArtistURI:
-                    return parent.Status?.Track?.ArtistResource?.Uri;
-                    
-                case MeasureType.Volume:
-                    return (parent.Status?.Volume * 100).ToString();
+                case "albumname":
+                case "album":
+                    return parent.Status?.Track?.AlbumResource?.Name ?? "";
 
-                case MeasureType.Position:
-                    double playingPosition = (parent.Status?.PlayingPosition).GetValueOrDefault();
-                    double sec = Math.Floor(playingPosition % 60);
-                    double min = Math.Floor(playingPosition / 60);
-                    return String.Format("{0}:{1}", min.ToString("#00"), sec.ToString("00"));
+                case "trackuri":
+                    return parent.Status?.Track?.TrackResource?.Uri ?? "";
 
-                case MeasureType.Length:
-                    double trackLength = (parent.Status?.Track?.Length).GetValueOrDefault();
-                    double secl = Math.Floor(trackLength % 60);
-                    double minl = Math.Floor(trackLength / 60);
-                    return String.Format("{0}:{1}", minl.ToString("#00"), secl.ToString("00"));
+                case "albumuri":
+                    return parent.Status?.Track?.AlbumResource?.Uri ?? "";
 
-                case MeasureType.TrackName:
-                    return parent.Status?.Track?.TrackResource?.Name;
-
-                case MeasureType.ArtistName:
-                    return parent.Status?.Track?.ArtistResource?.Name;
+                case "artisturi":
+                    return parent.Status?.Track?.ArtistResource?.Uri ?? "";
 
                 // TODO
-                case MeasureType.AlbumArt60:
-                    return AlbumArt.getArt(parent.Status?.Track?.AlbumResource?.Uri, 60, defaultPath, coverPath);
-
-                case MeasureType.AlbumArt85:
-                    return AlbumArt.getArt(parent.Status?.Track?.AlbumResource?.Uri, 85, defaultPath, coverPath);
-
-                case MeasureType.AlbumArt120:
-                    return AlbumArt.getArt(parent.Status?.Track?.AlbumResource?.Uri, 120, defaultPath, coverPath);
-
-                case MeasureType.AlbumArt300:
-                    return AlbumArt.getArt(parent.Status?.Track?.AlbumResource?.Uri, 300, defaultPath, coverPath);
-
-                case MeasureType.AlbumArt640:
-                    return AlbumArt.getArt(parent.Status?.Track?.AlbumResource?.Uri, 640, defaultPath, coverPath);
-
-                case MeasureType.AlbumName:
-                    return parent.Status?.Track?.AlbumResource?.Name;
-
-                case MeasureType.CoverPath:
-                    return null;
-                    //return StatusControl.CoverPath;
+                case "albumart":
+                case "cover":
+                    return AlbumArt.getArt(parent.Status?.Track?.AlbumResource?.Uri, artResolution, defaultPath, coverPath);
             }
             // MeasureType.Major, MeasureType.Minor, and MeasureType.Number are
             // numbers. Therefore, null is returned here for them. This is to
@@ -243,86 +91,127 @@ namespace SpotifyPlugin
             return null;
         }
 
+#if DEBUG
+        public double Update()
+#else
+        internal double Update()
+#endif
+        {
+            switch (measureType)
+            {
+                case "volume":
+                    return (parent.Status?.Volume).GetValueOrDefault();
+
+                case "repeat":
+                    return (parent.Status?.Repeat).GetValueOrDefault() ? 1 : 0;
+
+                case "shuffle":
+                    return (parent.Status?.Shuffle).GetValueOrDefault() ? 1 : 0;
+
+                case "position":
+                    return (parent.Status?.PlayingPosition).GetValueOrDefault();
+
+                case "playing":
+                    return (parent.Status?.Playing).GetValueOrDefault() ? 1 : 0;
+
+                case "length":
+                    return (parent.Status?.Track?.Length).GetValueOrDefault();
+
+                case "progress":
+                    double? o = parent.Status?.PlayingPosition / parent.Status?.Track?.Length;
+                    return o.GetValueOrDefault();
+            }
+            //API.Log(API.LogType.Error, "SpotifyPlugin: Type=" + measureType + " not valid");
+            return 0.0;
+        }
+
+
         internal void ExecuteBang(string arg)
         {
-            string[] args = Regex.Split(arg, " ");
-            switch (args[0].ToLowerInvariant())
+            // TODO Cheater
+            Thread t = new Thread(() =>
             {
-                // Single commands
-                case "playpause":
-                    if (parent.Status.Playing)
-                    {
-                        goto case "pause";
-                    }
-                    else
-                    {
-                        goto case "play";
-                    }
-                case "play":
-                    parent.WebAPI?.ResumePlayback();
-                    return;
-                case "pause":
-                    parent.WebAPI?.PausePlayback();
-                    return;
-                case "next":
-                    parent.WebAPI?.SkipPlaybackToNext();
-                    return;
-                case "previous":
-                    // TODO always skips to previous, should probably seek to 0 if progress > threshold
-                    parent.WebAPI?.SkipPlaybackToPrevious();
-                    return;
+                string[] args = Regex.Split(arg, " ");
+                switch (args[0].ToLowerInvariant())
+                {
+                    // Single commands
+                    case "playpause":
+                        if ((parent.Status?.Playing).GetValueOrDefault())
+                        {
+                            goto case "pause";
+                        }
+                        else
+                        {
+                            goto case "play";
+                        }
+                    case "play":
+                        parent.WebAPI?.ResumePlayback();
+                        return;
+                    case "pause":
+                        parent.WebAPI?.PausePlayback();
+                        return;
+                    case "next":
+                        parent.WebAPI?.SkipPlaybackToNext();
+                        return;
+                    case "previous":
+                        // TODO always skips to previous, should probably seek to 0 if progress > threshold
+                        parent.WebAPI?.SkipPlaybackToPrevious();
+                        return;
 
-                // Double commands
-                case "volume":
-                    int volume;
-                    if (!Int32.TryParse(args[1], out volume))
-                    {
-                        API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer between 0-100.");
+                    // Double commands
+                    case "volume":
+                        int volume;
+                        if (!Int32.TryParse(args[1], out volume))
+                        {
+                            API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer between 0-100.");
+                            return;
+                        }
+                        parent.WebAPI?.SetVolume(volume);
                         return;
-                    }
-                    parent.WebAPI?.SetVolume(volume);
-                    return;
-                case "seek":
-                    int seek;
-                    if (!Int32.TryParse(args[1], out seek))
-                    {
-                        API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer between 0-100.");
+                    case "seek":
+                        int seek;
+                        if (!Int32.TryParse(args[1], out seek))
+                        {
+                            API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}");
+                            return;
+                        }
+                        parent.WebAPI?.SeekPlayback(seek);
                         return;
-                    }
-                    parent.WebAPI?.SeekPlayback(seek);
-                    return;
-                case "seekpercent":
-                case "setposition":
-                    float position;
-                    if (!float.TryParse(args[1], out position))
-                    {
-                        API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be a number from 0 to 100.");
+                    case "seekpercent":
+                    case "setposition":
+                        float position;
+                        if (!float.TryParse(args[1], out position))
+                        {
+                            API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be a number from 0 to 100.");
+                            return;
+                        }
+                        // TODO error 405
+                        parent.WebAPI?.SeekPlayback((int)(parent.Status?.Track?.Length * position) / 100);
                         return;
-                    }
-                    // TODO error 405
-                    parent.WebAPI?.SeekPlayback((int)(parent.Status?.Track?.Length * position) / 100);
-                    return;
-                case "shuffle":
-                    bool shuffle;
-                    if (!bool.TryParse(args[1], out shuffle))
-                    {
-                        API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be either True or False");
+                    case "shuffle":
+                        bool shuffle;
+                        if (!bool.TryParse(args[1], out shuffle))
+                        {
+                            API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be either True or False");
+                            return;
+                        }
+                        parent.WebAPI?.SetShuffle(shuffle);
                         return;
-                    }
-                    parent.WebAPI?.SetShuffle(shuffle);
-                    return;
-                case "repeat":
-                    SpotifyAPI.Web.Enums.RepeatState repeat;
-                    if (!Enum.TryParse(args[1], out repeat))
-                    {
-                        API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be either Track, Context or Off");
+                    case "repeat":
+                        SpotifyAPI.Web.Enums.RepeatState repeat;
+                        if (!Enum.TryParse(args[1], out repeat))
+                        {
+                            API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be either Track, Context or Off");
+                            return;
+                        }
+                        parent.WebAPI?.SetRepeatMode(repeat);
                         return;
-                    }
-                    parent.WebAPI?.SetRepeatMode(repeat);
-                    return;
-            }
+                }
+                API.Log(API.LogType.Warning, $"Unknown command: {arg}");
+            });
 
-            API.Log(API.LogType.Warning, $"Unknown command: {arg}");
+            t.Start();
+
         }
     }
 
