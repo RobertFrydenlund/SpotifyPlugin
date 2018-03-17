@@ -37,7 +37,7 @@ namespace SpotifyPlugin
         {
             this.parent = parent;
         }
-        
+
         public void Reload(Rainmeter.API rm, ref double maxValue)
         {
             measureType = rm.ReadString("Type", "").ToLowerInvariant();
@@ -131,83 +131,91 @@ namespace SpotifyPlugin
             // TODO Cheater
             Thread t = new Thread(() =>
             {
-                string[] args = Regex.Split(arg, " ");
-                switch (args[0].ToLowerInvariant())
+                // TODO Really?
+                try
                 {
-                    // Single commands
-                    case "playpause":
-                        if ((parent.Status?.Playing).GetValueOrDefault())
-                        {
-                            goto case "pause";
-                        }
-                        else
-                        {
-                            goto case "play";
-                        }
-                    case "play":
-                        parent.WebAPI?.ResumePlayback();
-                        return;
-                    case "pause":
-                        parent.WebAPI?.PausePlayback();
-                        return;
-                    case "next":
-                        parent.WebAPI?.SkipPlaybackToNext();
-                        return;
-                    case "previous":
-                        // TODO always skips to previous, should probably seek to 0 if progress > threshold
-                        parent.WebAPI?.SkipPlaybackToPrevious();
-                        return;
+                    string[] args = Regex.Split(arg, " ");
+                    switch (args[0].ToLowerInvariant())
+                    {
+                        // Single commands
+                        case "playpause":
+                            if (parent.Status.Playing)
+                            {
+                                goto case "pause";
+                            }
+                            else
+                            {
+                                goto case "play";
+                            }
+                        case "play":
+                            parent.WebAPI.ResumePlayback();
+                            return;
+                        case "pause":
+                            parent.WebAPI.PausePlayback();
+                            return;
+                        case "next":
+                            parent.WebAPI.SkipPlaybackToNext();
+                            return;
+                        case "previous":
+                            // TODO always skips to previous, should probably seek to 0 if progress > threshold
+                            parent.WebAPI.SkipPlaybackToPrevious();
+                            return;
 
-                    // Double commands
-                    case "volume":
-                        int volume;
-                        if (!Int32.TryParse(args[1], out volume))
-                        {
-                            API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer between 0-100.");
+                        // Double commands
+                        case "volume":
+                            int volume;
+                            if (!Int32.TryParse(args[1], out volume))
+                            {
+                                API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer between 0-100.");
+                                return;
+                            }
+                            parent.WebAPI.SetVolume(volume);
                             return;
-                        }
-                        parent.WebAPI?.SetVolume(volume);
-                        return;
-                    case "seek":
-                        int seek;
-                        if (!Int32.TryParse(args[1], out seek))
-                        {
-                            API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}");
+                        case "seek":
+                            int seek;
+                            if (!Int32.TryParse(args[1], out seek))
+                            {
+                                API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}");
+                                return;
+                            }
+                            parent.WebAPI.SeekPlayback(seek);
                             return;
-                        }
-                        parent.WebAPI?.SeekPlayback(seek);
-                        return;
-                    case "seekpercent":
-                    case "setposition":
-                        float position;
-                        if (!float.TryParse(args[1], out position))
-                        {
-                            API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be a number from 0 to 100.");
+                        case "seekpercent":
+                        case "setposition":
+                            float position;
+                            if (!float.TryParse(args[1], out position))
+                            {
+                                API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be a number from 0 to 100.");
+                                return;
+                            }
+                            // TODO error 405
+                            parent.WebAPI.SeekPlayback((int)(parent.Status.Track.Length * position) / 100);
                             return;
-                        }
-                        // TODO error 405
-                        parent.WebAPI?.SeekPlayback((int)(parent.Status?.Track?.Length * position) / 100);
-                        return;
-                    case "shuffle":
-                        bool shuffle;
-                        if (!bool.TryParse(args[1], out shuffle))
-                        {
-                            API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be either True or False");
+                        case "shuffle":
+                            bool shuffle;
+                            if (!bool.TryParse(args[1], out shuffle))
+                            {
+                                API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be either True or False");
+                                return;
+                            }
+                            parent.WebAPI.SetShuffle(shuffle);
                             return;
-                        }
-                        parent.WebAPI?.SetShuffle(shuffle);
-                        return;
-                    case "repeat":
-                        SpotifyAPI.Web.Enums.RepeatState repeat;
-                        if (!Enum.TryParse(args[1], out repeat))
-                        {
-                            API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be either Track, Context or Off");
+                        case "repeat":
+                            SpotifyAPI.Web.Enums.RepeatState repeat;
+                            if (!Enum.TryParse(args[1], out repeat))
+                            {
+                                API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be either Track, Context or Off");
+                                return;
+                            }
+                            parent.WebAPI.SetRepeatMode(repeat);
                             return;
-                        }
-                        parent.WebAPI?.SetRepeatMode(repeat);
-                        return;
+                    }
+                    API.Log(API.LogType.Warning, $"Unknown command: {arg}");
                 }
-                API.Log(API.LogType.Warning, $"Unknown command: {arg}");
+                catch (Exception e)
+                {
+                    API.Log(API.LogType.Error, $"{e.Message} \n {e.StackTrace}");
+                }
             });
 
             t.Start();
