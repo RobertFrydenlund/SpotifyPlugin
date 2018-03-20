@@ -79,6 +79,19 @@ namespace SpotifyPlugin
                 case "artisturi":
                     return parent.Status?.Track?.ArtistResource?.Uri ?? "";
 
+                case "position":
+                    double playingPosition = (parent.Status?.PlayingPosition).GetValueOrDefault();
+                    double sec = Math.Floor(playingPosition % 60);
+                    double min = Math.Floor(playingPosition / 60);
+                    return String.Format("{0}:{1}", min.ToString("#00"), sec.ToString("00"));
+
+                case "duration":
+                case "length":
+                    double trackLength = (parent.Status?.Track?.Length).GetValueOrDefault();
+                    double secl = Math.Floor(trackLength % 60);
+                    double minl = Math.Floor(trackLength / 60);
+                    return String.Format("{0}:{1}", minl.ToString("#00"), secl.ToString("00"));
+
                 // TODO
                 case "albumart":
                 case "cover":

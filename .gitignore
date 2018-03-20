@@ -200,3 +200,4 @@ FakesAssemblies/
 /SpotifyPlugin_backup
 /SpotifyWebApi
 /SpotifyPlugin 2
+SpotifyPlugin/APIKeys.cs
