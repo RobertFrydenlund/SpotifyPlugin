@@ -128,6 +128,9 @@ namespace SpotifyPlugin
 
         internal void ExecuteBang(string arg)
         {
+            // Thread race, fails command when authenticating, ignore for now
+            parent.CheckAuthentication();
+
             // TODO Cheater
             Thread t = new Thread(() =>
             {

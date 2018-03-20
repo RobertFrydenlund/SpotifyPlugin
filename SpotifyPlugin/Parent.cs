@@ -26,16 +26,21 @@ namespace SpotifyPlugin
 
         public Parent()
         {
-            // Set up web API in different thread
-            new Thread(Authenticate).Start();
+            // Offline only for now, connect when you need to
 
             LocalAPI = new SpotifyLocalAPI();
             LocalAPI.Connect();
-
+            
             System.Timers.Timer timer = new System.Timers.Timer(50);
             timer.Elapsed += Timer_Elapsed;
             timer.AutoReset = true;
             timer.Start();
+        }
+
+        public void CheckAuthentication()
+        {
+            // Set up web API in different thread
+            new Thread(Authenticate).Start();
         }
 
         private void Authenticate()
