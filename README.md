@@ -3,7 +3,7 @@
 Spotify plugin for [Rainmeter](http://rainmeter.net/). Forum discussion can be found [here](http://rainmeter.net/forum/viewtopic.php?f=18&t=17077/).
 
 
-
+## Offline API
 |Measure	|Description						| Alias
 |-----------|-----------------------------------|------|
 |TrackName	|Returns track name					| Track
@@ -13,8 +13,16 @@ Spotify plugin for [Rainmeter](http://rainmeter.net/). Forum discussion can be f
 |AlbumURI	|Returns spotify URI for the album
 |ArtistURI	|Returns spotify URI for the artist
 |AlbumArt	|Path to album image				| Cover
+|volume|Current volume
+|repeat|1 if enabled
+|shuffle|1 if enabled
+|position|Current position
+|playing|1 if playing
+|length|Song length
+|progress|Song progress (0.0-1.0)
 ---
 
+## Online API
 |Command	| Description 					|Argument|
 |-----------|------------------------		|--------
 |playpause	|Pauses or resumes playback		|
