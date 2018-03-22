@@ -19,7 +19,7 @@ namespace SpotifyPlugin
             // Image changed
             if (AlbumUri != albumUri)
             {
-                if(resolution != 60 || resolution != 85 || resolution != 120 || resolution != 300 || resolution != 640)
+                if(resolution != 60 && resolution != 85 && resolution != 120 && resolution != 300 && resolution != 640)
                 {
                     Rainmeter.API.Log(Rainmeter.API.LogType.Warning, "Invalid resolution specified");
                     resolution = 300;
