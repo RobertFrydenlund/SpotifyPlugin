@@ -181,7 +181,7 @@ namespace SpotifyPlugin
                             return;
                         case "previous":
                             double playingPosition = (parent.Status?.PlayingPosition).GetValueOrDefault();
-                            if (playingPosition > skipThreshold)
+                            if (playingPosition < skipThreshold)
                             {
                                 parent.WebAPI.SkipPlaybackToPrevious();
                             }
