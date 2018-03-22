@@ -18,8 +18,8 @@ namespace SpotifyPlugin
         private SpotifyLocalAPI LocalAPI;
         public SpotifyWebAPI WebAPI;
 
-        string _clientSecret = APIKeys.ClientSecret;
-        string _clientId = APIKeys.ClientId;
+        readonly string _clientSecret = APIKeys.ClientSecret;
+        readonly string _clientId = APIKeys.ClientId;
 
         int _timeout = 20;
         SpotifyAPI.Web.Enums.Scope _scope = SpotifyAPI.Web.Enums.Scope.UserReadPlaybackState | SpotifyAPI.Web.Enums.Scope.UserModifyPlaybackState;

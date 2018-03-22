@@ -92,6 +92,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AlbumArt.cs" />
+    <Compile Include="APIKeys.cs" />
     <Compile Include="Out.cs" />
     <Compile Include="Parent.cs" />
     <Compile Include="Properties\Settings.Designer.cs">

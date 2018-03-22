@@ -3,6 +3,8 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
+using SpotifyAPI.Web.Enums;
+using SpotifyAPI.Web.Models;
 
 namespace SpotifyPlugin
 {
@@ -32,6 +34,11 @@ namespace SpotifyPlugin
         /// Manages actually talking to spotify.
         /// </summary>
         private Parent parent;
+
+        /// <summary>
+        /// If playing position is larger than this value, ExecuteBang("previous") will start song over instead of skipping to previous.
+        /// </summary>
+        public double skipThreshold = 4;
 
         public Measure(Parent parent)
         {
@@ -141,7 +148,7 @@ namespace SpotifyPlugin
 
         internal void ExecuteBang(string arg)
         {
-            // Thread race, fails command when authenticating, ignore for now
+            // TODO Thread race, fails command when authenticating, ignore for now
             parent.CheckAuthentication();
 
             // TODO Cheater
@@ -150,8 +157,8 @@ namespace SpotifyPlugin
                 // TODO Really?
                 try
                 {
-                    string[] args = Regex.Split(arg, " ");
-                    switch (args[0].ToLowerInvariant())
+                    string[] args = Regex.Split(arg.ToLowerInvariant(), " ");
+                    switch (args[0])
                     {
                         // Single commands
                         case "playpause":
@@ -173,33 +180,37 @@ namespace SpotifyPlugin
                             parent.WebAPI.SkipPlaybackToNext();
                             return;
                         case "previous":
-                            // TODO always skips to previous, should probably seek to 0 if progress > threshold
-                            parent.WebAPI.SkipPlaybackToPrevious();
+                            double playingPosition = (parent.Status?.PlayingPosition).GetValueOrDefault();
+                            if (playingPosition > skipThreshold)
+                            {
+                                parent.WebAPI.SkipPlaybackToPrevious();
+                            }
+                            else
+                            {
+                                parent.WebAPI.SeekPlayback(0);
+                            }
                             return;
 
                         // Double commands
                         case "volume":
-                            int volume;
-                            if (!Int32.TryParse(args[1], out volume))
+                            if (!Int32.TryParse(args[1], out int volume) && volume > 100 && volume < 0)
                             {
-                                API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer between 0-100.");
+                                API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer between 0 and 100.");
                                 return;
                             }
                             parent.WebAPI.SetVolume(volume);
                             return;
                         case "seek":
-                            int seek;
-                            if (!Int32.TryParse(args[1], out seek))
+                            if (!Int32.TryParse(args[1], out int seek))
                             {
-                                API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}");
+                                API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer.");
                                 return;
                             }
                             parent.WebAPI.SeekPlayback(seek);
                             return;
                         case "seekpercent":
                         case "setposition":
-                            float position;
-                            if (!float.TryParse(args[1], out position))
+                            if (!float.TryParse(args[1], out float position))
                             {
                                 API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be a number from 0 to 100.");
                                 return;
@@ -208,25 +219,27 @@ namespace SpotifyPlugin
                             parent.WebAPI.SeekPlayback((int)(parent.Status.Track.Length * position) / 100);
                             return;
                         case "shuffle":
-                            bool shuffle;
-                            if (!bool.TryParse(args[1], out shuffle))
+                        case "setshuffle":
+                            if (!ShuffleTryParse(args[1], out bool shuffle))
                             {
-                                API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be either True or False");
+                                API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be either -1, 0, 1, True or False");
                                 return;
                             }
                             parent.WebAPI.SetShuffle(shuffle);
                             return;
                         case "repeat":
-                            SpotifyAPI.Web.Enums.RepeatState repeat;
-                            if (!Enum.TryParse(args[1], out repeat))
+                        case "setrepeat":
+                            if (!RepeatTryParse(args[1], out RepeatState repeat))
                             {
-                                API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be either Track, Context or Off");
+                                API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be either Off, Track, Context, -1, 0, 1 or 2");
                                 return;
                             }
                             parent.WebAPI.SetRepeatMode(repeat);
                             return;
+                        default:
+                            API.Log(API.LogType.Warning, $"Unknown command: {arg}");
+                            break;
                     }
-                    API.Log(API.LogType.Warning, $"Unknown command: {arg}");
                 }
                 catch (Exception e)
                 {
@@ -236,6 +249,61 @@ namespace SpotifyPlugin
 
             t.Start();
 
+        }
+
+        private bool RepeatTryParse(string value, out RepeatState repeat)
+        {
+            switch (value)
+            {
+                case null:
+                    repeat = RepeatState.Off;
+                    return false;
+                case "-1":
+                    PlaybackContext pc = parent.WebAPI.GetPlayback();
+                    RepeatState repeatState = pc.RepeatState;
+                    switch (repeatState)
+                    {
+                        case RepeatState.Track:
+                            repeat = RepeatState.Context;
+                            break;
+                        case RepeatState.Context:
+                            repeat = RepeatState.Off;
+                            break;
+                        case RepeatState.Off:
+                            repeat = RepeatState.Track;
+                            break;
+                        default:
+                            repeat = RepeatState.Off;
+                            return false;
+                    }
+                    return true;
+                case "0":
+                    repeat = RepeatState.Off;
+                    return true;
+                default:
+                    return Enum.TryParse(value, out repeat);
+            }
+        }
+
+        private bool ShuffleTryParse(string value, out bool shuffle)
+        {
+            switch (value)
+            {
+                case null:
+                    shuffle = false;
+                    return false;
+                case "-1":
+                    shuffle = !parent.Status.Shuffle;
+                    return true;
+                case "0":
+                    shuffle = false;
+                    return true;
+                case "1":
+                    shuffle = true;
+                    return true;
+                default:
+                    return bool.TryParse(value, out shuffle);
+            }
         }
     }
 
