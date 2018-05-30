@@ -63,7 +63,7 @@ namespace SpotifyPlugin
                 {
                     Byte[] buffer = ReadStream(stream);
                     // Make sure the path folder exists
-                    System.IO.Directory.CreateDirectory(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "/Rainmeter/SpotifyPlugin");
+                    System.IO.Directory.CreateDirectory(Path.GetDirectoryName(filePath));
                     // Write stream to file
                     File.WriteAllBytes(filePath, buffer);
                 }

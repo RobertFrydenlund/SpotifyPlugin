@@ -3,26 +3,36 @@ using SpotifyAPI.Local.Models;
 using SpotifyAPI.Web;
 using SpotifyAPI.Web.Auth;
 using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Rainmeter;
+using SpotifyAPI.Web.Enums;
+using SpotifyAPI.Web.Models;
 
 namespace SpotifyPlugin
 {
     public class Parent
     {
-        public StatusResponse Status { get { return status; } }
-        private StatusResponse status;
+        public StatusResponse Status
+        {
+            get { return status; }
+        }
 
+        private StatusResponse status;
+        
         public bool SpotifyIsRunning;
 
-        private SpotifyLocalAPI LocalAPI;
+        public SpotifyLocalAPI LocalAPI;
         public SpotifyWebAPI WebAPI;
 
         readonly string _clientSecret = APIKeys.ClientSecret;
         readonly string _clientId = APIKeys.ClientId;
 
         int _timeout = 20;
-        SpotifyAPI.Web.Enums.Scope _scope = SpotifyAPI.Web.Enums.Scope.UserReadPlaybackState | SpotifyAPI.Web.Enums.Scope.UserModifyPlaybackState;
+
+        SpotifyAPI.Web.Enums.Scope _scope = SpotifyAPI.Web.Enums.Scope.UserReadPlaybackState |
+                                            SpotifyAPI.Web.Enums.Scope.UserModifyPlaybackState;
 
         public Parent()
         {
@@ -30,7 +40,7 @@ namespace SpotifyPlugin
 
             LocalAPI = new SpotifyLocalAPI();
             LocalAPI.Connect();
-            
+
             System.Timers.Timer timer = new System.Timers.Timer(50);
             timer.Elapsed += Timer_Elapsed;
             timer.AutoReset = true;
@@ -40,10 +50,14 @@ namespace SpotifyPlugin
         public void CheckAuthentication()
         {
             // Set up web API in different thread
-            new Thread(Authenticate).Start();
+            if (WebAPI == null)
+            {
+                Out.Log(API.LogType.Notice, "Setting up web API.");
+                new Thread(Authenticate).Start();
+            }
         }
 
-        private void Authenticate()
+        public void Authenticate()
         {
             AutorizationCodeAuth authentication = new AutorizationCodeAuth
             {
@@ -85,7 +99,8 @@ namespace SpotifyPlugin
             }
         }
 
-        private SpotifyWebAPI HandleSpotifyResponse(AutorizationCodeAuthResponse response, AutorizationCodeAuth authentication)
+        private SpotifyWebAPI HandleSpotifyResponse(AutorizationCodeAuthResponse response,
+            AutorizationCodeAuth authentication)
         {
             if (response.State != "XSS")
                 throw new SpotifyWebApiException($"Wrong state '{response.State}' received.");
@@ -125,8 +140,92 @@ namespace SpotifyPlugin
                 {
                     LocalAPI.Connect();
                 }
-                catch (System.Net.WebException) { }
+                catch (System.Net.WebException)
+                {
+                }
             }
+        }
+
+
+        public void PlayPause()
+        {
+            if (status.Playing)
+            {
+                Pause();
+            }
+            else
+            {
+                Play();
+            }
+        }
+
+        public void Play()
+        {
+            ErrorResponse er = WebAPI.ResumePlayback();
+            if (CorrectResponse(er)) return;
+            LocalAPI.Play();
+        }
+
+        public void Pause()
+        {
+            ErrorResponse er = WebAPI.PausePlayback();
+            if (CorrectResponse(er)) return;
+            LocalAPI.Pause();
+        }
+
+        public void Next()
+        {
+            ErrorResponse er = WebAPI.SkipPlaybackToNext();
+            if (CorrectResponse(er)) return;
+            LocalAPI.Skip();
+        }
+
+        public void Previous(double skipThreshold)
+        {
+            double playingPosition = (Status?.PlayingPosition).GetValueOrDefault();
+            if (playingPosition < skipThreshold)
+            {
+                ErrorResponse er = WebAPI.SkipPlaybackToPrevious();
+                if (CorrectResponse(er)) return;
+            }
+            else
+            {
+                Seek(0);
+                ErrorResponse er = WebAPI.SkipPlaybackToPrevious();
+                if (CorrectResponse(er)) return;
+            }
+            LocalAPI.Previous();
+        }
+
+        public void Seek(int positionMs)
+        {
+            ErrorResponse er = WebAPI.SeekPlayback(0);
+            if (CorrectResponse(er)) return;
+        }
+
+        public void SetVolume(int volume)
+        {
+            ErrorResponse er = WebAPI.SetVolume(volume);
+            if (CorrectResponse(er)) return;
+        }
+
+        public void SetShuffle(bool shuffle)
+        {
+            ErrorResponse er = WebAPI.SetShuffle(shuffle);
+            if (CorrectResponse(er)) return;
+        }
+
+        public void SetRepeat(RepeatState repeat)
+        {
+            ErrorResponse er = WebAPI.SetRepeatMode(repeat);
+            if (CorrectResponse(er)) return;
+        }
+
+        private static bool CorrectResponse(ErrorResponse er)
+        {
+            if (!er.HasError()) return true;
+            Out.Log(API.LogType.Notice, $"Error {er.Error.Status}: {er.Error.Message}");
+            return false;
         }
     }
 }

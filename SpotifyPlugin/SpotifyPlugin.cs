@@ -13,7 +13,7 @@ namespace SpotifyPlugin
         /// <summary>
         /// Cover art save path.
         /// </summary>
-        public string coverPath = "";
+        public string coverPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SpotifyPlugin\cover.png";
 
         /// <summary>
         /// Default path.
@@ -48,13 +48,6 @@ namespace SpotifyPlugin
         public void Reload(Rainmeter.API rm, ref double maxValue)
         {
             measureType = rm.ReadString("Type", "").ToLowerInvariant();
-            if (measureType == "albumart")
-            {
-                // TODO get a proper default path
-                coverPath = rm.ReadPath("CoverPath", "");
-                defaultPath = rm.ReadPath("DefaultPath", "");
-                artResolution = rm.ReadInt("Res", 300);
-            }
         }
 
 #if DEBUG
@@ -161,33 +154,19 @@ namespace SpotifyPlugin
                     {
                         // Single commands
                         case "playpause":
-                            if (parent.Status.Playing)
-                            {
-                                goto case "pause";
-                            }
-                            else
-                            {
-                                goto case "play";
-                            }
+                            parent.PlayPause();
+                            return;
                         case "play":
-                            parent.WebAPI.ResumePlayback();
+                            parent.Play();
                             return;
                         case "pause":
-                            parent.WebAPI.PausePlayback();
+                            parent.Pause();
                             return;
                         case "next":
-                            parent.WebAPI.SkipPlaybackToNext();
+                            parent.Next();
                             return;
                         case "previous":
-                            double playingPosition = (parent.Status?.PlayingPosition).GetValueOrDefault();
-                            if (playingPosition < skipThreshold)
-                            {
-                                parent.WebAPI.SkipPlaybackToPrevious();
-                            }
-                            else
-                            {
-                                parent.WebAPI.SeekPlayback(0);
-                            }
+                            parent.Previous(skipThreshold);
                             return;
 
                         // Double commands
@@ -197,15 +176,15 @@ namespace SpotifyPlugin
                                 API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer between 0 and 100.");
                                 return;
                             }
-                            parent.WebAPI.SetVolume(volume);
+                            parent.SetVolume(volume);
                             return;
                         case "seek":
-                            if (!Int32.TryParse(args[1], out int seek))
+                            if (!Int32.TryParse(args[1], out int positionMs))
                             {
                                 API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer.");
                                 return;
                             }
-                            parent.WebAPI.SeekPlayback(seek);
+                            parent.Seek(positionMs);
                             return;
                         case "seekpercent":
                         case "setposition":
@@ -215,7 +194,7 @@ namespace SpotifyPlugin
                                 return;
                             }
                             // TODO error 405
-                            parent.WebAPI.SeekPlayback((int)(parent.Status.Track.Length * position) / 100);
+                            parent.Seek((int)(parent.Status.Track.Length * position) / 100);
                             return;
                         case "shuffle":
                         case "setshuffle":
@@ -224,7 +203,7 @@ namespace SpotifyPlugin
                                 API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be either -1, 0, 1, True or False");
                                 return;
                             }
-                            parent.WebAPI.SetShuffle(shuffle);
+                            parent.SetShuffle(shuffle);
                             return;
                         case "repeat":
                         case "setrepeat":
@@ -233,7 +212,7 @@ namespace SpotifyPlugin
                                 API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be either Off, Track, Context, -1, 0, 1 or 2");
                                 return;
                             }
-                            parent.WebAPI.SetRepeatMode(repeat);
+                            parent.SetRepeat(repeat);
                             return;
                         default:
                             API.Log(API.LogType.Warning, $"Unknown command: {arg}");
