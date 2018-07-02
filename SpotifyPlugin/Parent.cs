@@ -199,7 +199,7 @@ namespace SpotifyPlugin
 
         public void Seek(int positionMs)
         {
-            ErrorResponse er = WebAPI.SeekPlayback(0);
+            ErrorResponse er = WebAPI.SeekPlayback(positionMs * 1000);
             if (CorrectResponse(er)) return;
         }
 
