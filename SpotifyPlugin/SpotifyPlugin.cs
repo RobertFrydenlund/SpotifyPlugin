@@ -184,7 +184,7 @@ namespace SpotifyPlugin
                                 API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer.");
                                 return;
                             }
-                            parent.Seek(positionMs);
+                            parent.Seek(positionMs * 1000);
                             return;
                         case "seekpercent":
                         case "setposition":
