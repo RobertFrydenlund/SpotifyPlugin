@@ -179,12 +179,12 @@ namespace SpotifyPlugin
                             parent.SetVolume(volume);
                             return;
                         case "seek":
-                            if (!Int32.TryParse(args[1], out int positionMs))
+                            if (!Int32.TryParse(args[1], out int positionS))
                             {
                                 API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer.");
                                 return;
                             }
-                            parent.Seek(positionMs);
+                            parent.Seek(positionS * 1000);
                             return;
                         case "seekpercent":
                         case "setposition":
