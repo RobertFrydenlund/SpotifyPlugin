@@ -60,42 +60,52 @@ namespace SpotifyPlugin
             {
                 case "trackname":
                 case "track":
-                    return parent.Status?.Track?.TrackResource?.Name ?? "";
+                    return parent.Status?.Item?.Name ?? "";
 
                 case "artistname":
                 case "artist":
-                    return parent.Status?.Track?.ArtistResource?.Name ?? "";
+                    var artists = parent.Status?.Item?.Artists;
+                    if (artists == null) return "";
+                    string result = "";
+                    foreach (SimpleArtist artist in artists)
+                    {
+                        if (result.Length != 0)
+                        {
+                            result += ", ";
+                        }
+                        result += artist.Name;
+                    }
+                    return result;
 
                 case "albumname":
                 case "album":
-                    return parent.Status?.Track?.AlbumResource?.Name ?? "";
+                    return parent.Status?.Item?.Album?.Name ?? "";
 
                 case "trackuri":
-                    return parent.Status?.Track?.TrackResource?.Uri ?? "";
+                    return parent.Status?.Item?.Uri ?? "";
 
                 case "albumuri":
-                    return parent.Status?.Track?.AlbumResource?.Uri ?? "";
+                    return parent.Status?.Item?.Album.Uri ?? "";
 
                 case "artisturi":
-                    return parent.Status?.Track?.ArtistResource?.Uri ?? "";
+                    // TODO
+                    //return parent.Status?.Track?.ArtistResource?.Uri ?? "";
+                    return "not implemented yet";
 
                 case "position":
-                    double playingPosition = (parent.Status?.PlayingPosition).GetValueOrDefault();
-                    double sec = Math.Floor(playingPosition % 60);
-                    double min = Math.Floor(playingPosition / 60);
-                    return String.Format("{0}:{1}", min.ToString("#00"), sec.ToString("00"));
+                    TimeSpan position = TimeSpan.FromMilliseconds((parent.Status?.ProgressMs).GetValueOrDefault());
+                    return position.ToString(@"mm\:ss");
 
                 case "duration":
                 case "length":
-                    double trackLength = (parent.Status?.Track?.Length).GetValueOrDefault();
-                    double secl = Math.Floor(trackLength % 60);
-                    double minl = Math.Floor(trackLength / 60);
-                    return String.Format("{0}:{1}", minl.ToString("#00"), secl.ToString("00"));
+                    TimeSpan duration = TimeSpan.FromMilliseconds((parent.Status?.Item?.DurationMs).GetValueOrDefault());
+                    return duration.ToString(@"mm\:ss");
 
                 // TODO
                 case "albumart":
                 case "cover":
-                    return AlbumArt.getArt(parent.Status?.Track?.AlbumResource?.Uri, artResolution, defaultPath, coverPath);
+                   return AlbumArt.getArt(parent.Status?.Item?.Album?.Uri, artResolution, defaultPath, coverPath);
+                    
             }
             // MeasureType.Major, MeasureType.Minor, and MeasureType.Number are
             // numbers. Therefore, null is returned here for them. This is to
@@ -113,26 +123,26 @@ namespace SpotifyPlugin
             switch (measureType)
             {
                 case "volume":
-                    return (parent.Status?.Volume).GetValueOrDefault();
+                    return (parent.Status?.Device?.VolumePercent).GetValueOrDefault();
 
                 case "repeat":
-                    return (parent.Status?.Repeat).GetValueOrDefault() ? 1 : 0;
+                    return (int)(parent.Status?.RepeatState).GetValueOrDefault();
 
                 case "shuffle":
-                    return (parent.Status?.Shuffle).GetValueOrDefault() ? 1 : 0;
+                    return 0;//(parent.Status?.Shuffle).GetValueOrDefault() ? 1 : 0;
 
                 case "position":
-                    return (parent.Status?.PlayingPosition).GetValueOrDefault();
+                    return 0;// (parent.Status?.PlayingPosition).GetValueOrDefault();
 
                 case "playing":
-                    return (parent.Status?.Playing).GetValueOrDefault() ? 1 : 0;
+                    return 0;//(parent.Status?.Playing).GetValueOrDefault() ? 1 : 0;
 
                 case "length":
-                    return (parent.Status?.Track?.Length).GetValueOrDefault();
+                    return 0;//(parent.Status?.Track?.Length).GetValueOrDefault();
 
                 case "progress":
-                    double? o = parent.Status?.PlayingPosition / parent.Status?.Track?.Length;
-                    return o.GetValueOrDefault();
+                    //double? o = parent.Status?.PlayingPosition / parent.Status?.Track?.Length;
+                    return 0;
             }
             //API.Log(API.LogType.Error, "SpotifyPlugin: Type=" + measureType + " not valid");
             return 0.0;
@@ -179,12 +189,12 @@ namespace SpotifyPlugin
                             parent.SetVolume(volume);
                             return;
                         case "seek":
-                            if (!Int32.TryParse(args[1], out int positionS))
+                            if (!Int32.TryParse(args[1], out int positionMs))
                             {
                                 API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer.");
                                 return;
                             }
-                            parent.Seek(positionS * 1000);
+                            parent.Seek(positionMs);
                             return;
                         case "seekpercent":
                         case "setposition":
@@ -193,8 +203,8 @@ namespace SpotifyPlugin
                                 API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be a number from 0 to 100.");
                                 return;
                             }
-                            // TODO error 405
-                            parent.Seek((int)(parent.Status.Track.Length * position) / 100);
+                            // TODO probably not correct
+                            parent.Seek((int)(parent.Status.Item.DurationMs * position) / 100);
                             return;
                         case "shuffle":
                         case "setshuffle":
@@ -271,7 +281,7 @@ namespace SpotifyPlugin
                     shuffle = false;
                     return false;
                 case "-1":
-                    shuffle = !parent.Status.Shuffle;
+                    shuffle = !(parent.Status?.ShuffleState).GetValueOrDefault();
                     return true;
                 case "0":
                     shuffle = false;

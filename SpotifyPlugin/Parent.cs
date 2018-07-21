@@ -1,6 +1,4 @@
-﻿using SpotifyAPI.Local;
-using SpotifyAPI.Local.Models;
-using SpotifyAPI.Web;
+﻿using SpotifyAPI.Web;
 using SpotifyAPI.Web.Auth;
 using System;
 using System.Runtime.InteropServices;
@@ -14,38 +12,51 @@ namespace SpotifyPlugin
 {
     public class Parent
     {
-        public StatusResponse Status
+        private int _refreshRate = 500;
+        public int RefreshRate
         {
-            get { return status; }
+            get => _refreshRate;
+            set
+            {
+                _refreshRate = value;
+                if (timer != null)
+                {
+                    timer.Interval = value;
+                }
+            }
         }
 
-        private StatusResponse status;
-        
-        public bool SpotifyIsRunning;
+        private System.Timers.Timer timer;
 
-        public SpotifyLocalAPI LocalAPI;
+        public SpotifyAPI.Web.Models.PlaybackContext Status { get; private set; }
         public SpotifyWebAPI WebAPI;
 
-        readonly string _clientSecret = APIKeys.ClientSecret;
-        readonly string _clientId = APIKeys.ClientId;
+        private readonly string _clientSecret = APIKeys.ClientSecret;
+        private readonly string _clientId = APIKeys.ClientId;
+        private readonly Scope _scope = Scope.UserReadPlaybackState | Scope.UserModifyPlaybackState;
 
-        int _timeout = 20;
+        private readonly int _timeout = 20;
 
-        SpotifyAPI.Web.Enums.Scope _scope = SpotifyAPI.Web.Enums.Scope.UserReadPlaybackState |
-                                            SpotifyAPI.Web.Enums.Scope.UserModifyPlaybackState;
+        private Task<SpotifyWebAPI> authenticationTask;
 
         public Parent()
         {
-            // Offline only for now, connect when you need to
-
-            LocalAPI = new SpotifyLocalAPI();
-            LocalAPI.Connect();
-
-            System.Timers.Timer timer = new System.Timers.Timer(50);
+            WebAPIFactory webApiFactory = new WebAPIFactory("http://127.0.0.1", 7476, APIKeys.ClientId, _scope);
+            authenticationTask = webApiFactory.GetWebApi();
+            WebAPI = authenticationTask.Result;
+            
+            
+            timer = new System.Timers.Timer(RefreshRate);
             timer.Elapsed += Timer_Elapsed;
             timer.AutoReset = true;
             timer.Start();
         }
+
+        private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            Status = WebAPI.GetPlayback();
+        }
+
 
         public void CheckAuthentication()
         {
@@ -129,27 +140,9 @@ namespace SpotifyPlugin
             return spotifyWebAPI;
         }
 
-        private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
-        {
-            status = LocalAPI.GetStatus();
-            if (status == null) return; // Spotify is probably not running
-            if (status.Track == null)
-            {
-                // Spotify is running, but we are not recieving track info, reconnect
-                try
-                {
-                    LocalAPI.Connect();
-                }
-                catch (System.Net.WebException)
-                {
-                }
-            }
-        }
-
-
         public void PlayPause()
         {
-            if (status.Playing)
+            if (Status.IsPlaying)
             {
                 Pause();
             }
@@ -163,26 +156,23 @@ namespace SpotifyPlugin
         {
             ErrorResponse er = WebAPI.ResumePlayback();
             if (CorrectResponse(er)) return;
-            LocalAPI.Play();
         }
 
         public void Pause()
         {
             ErrorResponse er = WebAPI.PausePlayback();
             if (CorrectResponse(er)) return;
-            LocalAPI.Pause();
         }
 
         public void Next()
         {
             ErrorResponse er = WebAPI.SkipPlaybackToNext();
             if (CorrectResponse(er)) return;
-            LocalAPI.Skip();
         }
 
         public void Previous(double skipThreshold)
         {
-            double playingPosition = (Status?.PlayingPosition).GetValueOrDefault();
+            double playingPosition = (Status?.ProgressMs).GetValueOrDefault()/1000;
             if (playingPosition < skipThreshold)
             {
                 ErrorResponse er = WebAPI.SkipPlaybackToPrevious();
@@ -194,7 +184,6 @@ namespace SpotifyPlugin
                 ErrorResponse er = WebAPI.SkipPlaybackToPrevious();
                 if (CorrectResponse(er)) return;
             }
-            LocalAPI.Previous();
         }
 
         public void Seek(int positionMs)
@@ -221,10 +210,14 @@ namespace SpotifyPlugin
             if (CorrectResponse(er)) return;
         }
 
-        private static bool CorrectResponse(ErrorResponse er)
+        private bool CorrectResponse(ErrorResponse er)
         {
             if (!er.HasError()) return true;
             Out.Log(API.LogType.Notice, $"Error {er.Error.Status}: {er.Error.Message}");
+            if (er.Error.Status == 401)
+            {
+                //CheckAuthentication();
+            }
             return false;
         }
     }

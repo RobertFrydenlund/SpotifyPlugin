@@ -13,6 +13,10 @@ namespace SpotifyPlugin
 
         public static void Log(API.LogType verbosity, string value)
         {
+#if DEBUG
+            Console.WriteLine(value);
+            return;
+#endif
             API.Log(verbosity, value);
         }
 
