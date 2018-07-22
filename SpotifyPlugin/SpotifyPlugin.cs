@@ -104,8 +104,8 @@ namespace SpotifyPlugin
                 // TODO
                 case "albumart":
                 case "cover":
-                   return AlbumArt.getArt(parent.Status?.Item?.Album?.Uri, artResolution, defaultPath, coverPath);
-                    
+                    return AlbumArt.getArt(parent.Status?.Item?.Album?.Uri, artResolution, defaultPath, coverPath);
+
             }
             // MeasureType.Major, MeasureType.Minor, and MeasureType.Number are
             // numbers. Therefore, null is returned here for them. This is to
@@ -129,113 +129,108 @@ namespace SpotifyPlugin
                     return (int)(parent.Status?.RepeatState).GetValueOrDefault();
 
                 case "shuffle":
-                    return 0;//(parent.Status?.Shuffle).GetValueOrDefault() ? 1 : 0;
+                    return (parent.Status?.ShuffleState).GetValueOrDefault() ? 1 : 0;
 
                 case "position":
-                    return 0;// (parent.Status?.PlayingPosition).GetValueOrDefault();
+                    return (parent.Status?.ProgressMs).GetValueOrDefault();
 
                 case "playing":
-                    return 0;//(parent.Status?.Playing).GetValueOrDefault() ? 1 : 0;
+                    return (parent.Status?.IsPlaying).GetValueOrDefault() ? 1 : 0;
 
                 case "length":
-                    return 0;//(parent.Status?.Track?.Length).GetValueOrDefault();
+                    return (parent.Status?.Item.DurationMs).GetValueOrDefault();
 
                 case "progress":
-                    //double? o = parent.Status?.PlayingPosition / parent.Status?.Track?.Length;
-                    return 0;
+                    double? o = parent.Status?.ProgressMs / parent.Status?.Item?.DurationMs;
+                    return o.GetValueOrDefault();
             }
             //API.Log(API.LogType.Error, "SpotifyPlugin: Type=" + measureType + " not valid");
             return 0.0;
         }
 
-
         internal void ExecuteBang(string arg)
         {
-            // TODO Cheater
-            Thread t = new Thread(() =>
-            {
-                // TODO Really?
-                try
-                {
-                    parent.CheckAuthentication();
-
-                    string[] args = Regex.Split(arg.ToLowerInvariant(), " ");
-                    switch (args[0])
-                    {
-                        // Single commands
-                        case "playpause":
-                            parent.PlayPause();
-                            return;
-                        case "play":
-                            parent.Play();
-                            return;
-                        case "pause":
-                            parent.Pause();
-                            return;
-                        case "next":
-                            parent.Next();
-                            return;
-                        case "previous":
-                            parent.Previous(skipThreshold);
-                            return;
-
-                        // Double commands
-                        case "volume":
-                            if (!Int32.TryParse(args[1], out int volume) && volume > 100 && volume < 0)
-                            {
-                                API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer between 0 and 100.");
-                                return;
-                            }
-                            parent.SetVolume(volume);
-                            return;
-                        case "seek":
-                            if (!Int32.TryParse(args[1], out int positionMs))
-                            {
-                                API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer.");
-                                return;
-                            }
-                            parent.Seek(positionMs);
-                            return;
-                        case "seekpercent":
-                        case "setposition":
-                            if (!float.TryParse(args[1], out float position))
-                            {
-                                API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be a number from 0 to 100.");
-                                return;
-                            }
-                            // TODO probably not correct
-                            parent.Seek((int)(parent.Status.Item.DurationMs * position) / 100);
-                            return;
-                        case "shuffle":
-                        case "setshuffle":
-                            if (!ShuffleTryParse(args[1], out bool shuffle))
-                            {
-                                API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be either -1, 0, 1, True or False");
-                                return;
-                            }
-                            parent.SetShuffle(shuffle);
-                            return;
-                        case "repeat":
-                        case "setrepeat":
-                            if (!RepeatTryParse(args[1], out RepeatState repeat))
-                            {
-                                API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be either Off, Track, Context, -1, 0, 1 or 2");
-                                return;
-                            }
-                            parent.SetRepeat(repeat);
-                            return;
-                        default:
-                            API.Log(API.LogType.Warning, $"Unknown command: {arg}");
-                            break;
-                    }
-                }
-                catch (Exception e)
-                {
-                    API.Log(API.LogType.Error, $"{e.Message} \n {e.StackTrace}");
-                }
-            });
-
+            Thread t = new Thread(() => Execute(arg));
             t.Start();
+        }
+        
+        public void Execute(string arg)
+        {
+            if(parent.Status == null) return;
+            string[] args = Regex.Split(arg.ToLowerInvariant(), " ");
+            if (args.Length == 0) { API.Log(API.LogType.Warning, $"No command given"); return; }
+            switch (args[0])
+            {
+                // Single commands
+                case "playpause":
+                    parent.PlayPause();
+                    return;
+                case "play":
+                    parent.Play();
+                    return;
+                case "pause":
+                    parent.Pause();
+                    return;
+                case "next":
+                    parent.Next();
+                    return;
+                case "previous":
+                    parent.Previous(skipThreshold);
+                    return;
+            }
+
+            if (args.Length < 2) {API.Log(API.LogType.Warning, $"Invalid amount of arguments for {args[9]}"); return;}
+            switch (args[0])
+            {
+            // Double commands
+                case "volume":
+                    if (!Int32.TryParse(args[1], out int volume) && volume > 100 && volume < 0)
+                    {
+                        API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer between 0 and 100.");
+                        return;
+                    }
+                    parent.SetVolume(volume);
+                    return;
+                case "seek":
+                    if (!Int32.TryParse(args[1], out int positionMs))
+                    {
+                        API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer.");
+                        return;
+                    }
+                    parent.Seek(positionMs);
+                    return;
+                case "seekpercent":
+                case "setposition":
+                    if (!float.TryParse(args[1], out float position))
+                    {
+                        API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be a number from 0 to 100.");
+                        return;
+                    }
+                    // TODO probably not correct
+                    parent.Seek((int)(parent.Status.Item.DurationMs * position) / 100);
+                    return;
+                case "shuffle":
+                case "setshuffle":
+                    if (!ShuffleTryParse(args[1], out bool shuffle))
+                    {
+                        API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be either -1, 0, 1, True or False");
+                        return;
+                    }
+                    parent.SetShuffle(shuffle);
+                    return;
+                case "repeat":
+                case "setrepeat":
+                    if (!RepeatTryParse(args[1], out RepeatState repeat))
+                    {
+                        API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be either Off, Track, Context, -1, 0, 1 or 2");
+                        return;
+                    }
+                    parent.SetRepeat(repeat);
+                    return;
+                default:
+                    API.Log(API.LogType.Warning, $"Unknown command: {arg}");
+                    break;
+            }
 
         }
 
