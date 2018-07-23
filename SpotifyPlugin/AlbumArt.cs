@@ -21,11 +21,12 @@ namespace SpotifyPlugin
             {
                 if(resolution != 60 && resolution != 85 && resolution != 120 && resolution != 300 && resolution != 640)
                 {
-                    Rainmeter.API.Log(Rainmeter.API.LogType.Warning, "Invalid resolution specified");
+
+                    Out.Log(Rainmeter.API.LogType.Warning, "Invalid resolution specified");
                     resolution = 300;
                 }
 
-                Rainmeter.API.Log(Rainmeter.API.LogType.Notice, "Artwork change detected");
+                Out.Log(Rainmeter.API.LogType.Notice, "Artwork change detected");
                 // Update URI
                 AlbumUri = albumUri;
                 // Default image

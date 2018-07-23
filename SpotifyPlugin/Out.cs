@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using Rainmeter;
@@ -10,19 +11,21 @@ namespace SpotifyPlugin
     {
         //private static string lastPrint = "";
         private static Stopwatch sw;
-
+        
         public static void Log(API.LogType verbosity, string value)
         {
+#pragma warning disable 0162
 #if DEBUG
             Console.WriteLine(value);
             return;
 #endif
-            API.Log(verbosity, value);
+            API.Log(Plugin.Rainmeter, verbosity, value);
+#pragma warning restore 0162
         }
 
         public static void Log(API.LogType verbosity, string format, params object[] arg0)
         {
-            API.Log(verbosity, String.Format(format, arg0));
+            Log(verbosity, string.Format(format, arg0));
         }
 
         public static void Start()

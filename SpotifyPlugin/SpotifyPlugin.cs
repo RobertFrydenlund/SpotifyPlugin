@@ -138,7 +138,7 @@ namespace SpotifyPlugin
                     return (parent.Status?.IsPlaying).GetValueOrDefault() ? 1 : 0;
 
                 case "length":
-                    return (parent.Status?.Item.DurationMs).GetValueOrDefault();
+                    return (parent.Status?.Item?.DurationMs).GetValueOrDefault();
 
                 case "progress":
                     double? o = parent.Status?.ProgressMs / parent.Status?.Item?.DurationMs;
@@ -158,7 +158,7 @@ namespace SpotifyPlugin
         {
             if(parent.Status == null) return;
             string[] args = Regex.Split(arg.ToLowerInvariant(), " ");
-            if (args.Length == 0) { API.Log(API.LogType.Warning, $"No command given"); return; }
+            if (args.Length == 0) { Out.Log(API.LogType.Warning, $"No command given"); return; }
             switch (args[0])
             {
                 // Single commands
@@ -179,14 +179,14 @@ namespace SpotifyPlugin
                     return;
             }
 
-            if (args.Length < 2) {API.Log(API.LogType.Warning, $"Invalid amount of arguments for {args[9]}"); return;}
+            if (args.Length < 2) {Out.Log(API.LogType.Warning, $"Invalid amount of arguments for {args[9]}"); return;}
             switch (args[0])
             {
             // Double commands
                 case "volume":
                     if (!Int32.TryParse(args[1], out int volume) && volume > 100 && volume < 0)
                     {
-                        API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer between 0 and 100.");
+                        Out.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer between 0 and 100.");
                         return;
                     }
                     parent.SetVolume(volume);
@@ -194,7 +194,7 @@ namespace SpotifyPlugin
                 case "seek":
                     if (!Int32.TryParse(args[1], out int positionMs))
                     {
-                        API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer.");
+                        Out.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be an integer.");
                         return;
                     }
                     parent.Seek(positionMs);
@@ -203,7 +203,7 @@ namespace SpotifyPlugin
                 case "setposition":
                     if (!float.TryParse(args[1], out float position))
                     {
-                        API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be a number from 0 to 100.");
+                        Out.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be a number from 0 to 100.");
                         return;
                     }
                     // TODO probably not correct
@@ -213,7 +213,7 @@ namespace SpotifyPlugin
                 case "setshuffle":
                     if (!ShuffleTryParse(args[1], out bool shuffle))
                     {
-                        API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be either -1, 0, 1, True or False");
+                        Out.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be either -1, 0, 1, True or False");
                         return;
                     }
                     parent.SetShuffle(shuffle);
@@ -222,13 +222,13 @@ namespace SpotifyPlugin
                 case "setrepeat":
                     if (!RepeatTryParse(args[1], out RepeatState repeat))
                     {
-                        API.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be either Off, Track, Context, -1, 0, 1 or 2");
+                        Out.Log(API.LogType.Warning, $"Invalid arguments for command: {args[0]}. {args[1]} should be either Off, Track, Context, -1, 0, 1 or 2");
                         return;
                     }
                     parent.SetRepeat(repeat);
                     return;
                 default:
-                    API.Log(API.LogType.Warning, $"Unknown command: {arg}");
+                    Out.Log(API.LogType.Warning, $"Unknown command: {arg}");
                     break;
             }
 
@@ -242,7 +242,7 @@ namespace SpotifyPlugin
                     repeat = RepeatState.Off;
                     return false;
                 case "-1":
-                    PlaybackContext pc = parent.WebAPI.GetPlayback();
+                    PlaybackContext pc = parent.WebApi.GetPlayback();
                     RepeatState repeatState = pc.RepeatState;
                     switch (repeatState)
                     {
@@ -293,12 +293,14 @@ namespace SpotifyPlugin
     public static class Plugin
     {
         static IntPtr StringBuffer = IntPtr.Zero;
+        public static IntPtr Rainmeter;
 
         static Parent parent;
 
         [DllExport]
         public static void Initialize(ref IntPtr data, IntPtr rm)
         {
+            Rainmeter = rm;
             if (parent == null) { parent = new Parent(); }
             data = GCHandle.ToIntPtr(GCHandle.Alloc(new Measure(parent)));
         }
