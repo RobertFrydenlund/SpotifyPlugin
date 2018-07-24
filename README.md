@@ -1,3 +1,8 @@
+## This plugin is no longer being actively maintained.
+For a functional replacement, I recommend https://github.com/khanhas/Spicetify.
+
+
+
 # SpotifyPlugin
 
 Spotify plugin for [Rainmeter](http://rainmeter.net/). Forum discussion can be found [here](http://rainmeter.net/forum/viewtopic.php?f=18&t=17077/).
